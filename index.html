@@ -1,0 +1,2359 @@
+```html
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام HACCP | مراقبة درجات حرارة البرادات والمجمدات</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cairo for clean Arabic typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <!-- QRCode.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                    },
+                    colors: {
+                        haccp: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            600: '#16a34a',
+                            700: '#15803d',
+                            800: '#166534',
+                            900: '#14532d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #f8fafc;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        /* Print Styles for Health Inspection & QR Stickers */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #print-area, #print-area * {
+                visibility: visible;
+            }
+            #print-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                background: white !important;
+                padding: 10px !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="text-slate-800 antialiased pb-20 md:pb-8">
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+    <!-- Top Navigation Bar -->
+    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand -->
+                <div class="flex items-center gap-3">
+                    <div class="bg-emerald-500/20 border border-emerald-500/40 p-2 rounded-xl text-emerald-400">
+                        <i data-lucide="thermometer-snowflake" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-extrabold text-base sm:text-lg leading-tight tracking-wide">نظام سلامة الغذاء HACCP</h1>
+                        <p class="text-xs text-slate-400 hidden sm:block">سجل مراقبة درجات حرارة البرادات والمجمدات</p>
+                    </div>
+                </div>
+
+                <!-- Quick Action Button -->
+                <div class="flex items-center gap-2">
+                    <!-- Manager Notifications Bell -->
+                    <button onclick="openNotificationsModal()" class="relative bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 p-2.5 rounded-xl transition" title="إشعارات المدير التلقائية">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span id="notif-badge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-extrabold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-slate-900 animate-pulse">0</span>
+                    </button>
+                    <button onclick="openLogModal()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition text-white font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-emerald-900/40">
+                        <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                        <span>تسجيل قراءة حرارة</span>
+                    </button>
+                </div>
+            </div>
+            <!-- Cloud Sync Status & Session ID Bar -->
+            <div class="border-t border-slate-800 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                <div class="flex items-center gap-2">
+                    <span id="cloud-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                    <span id="cloud-status-text" class="text-slate-300 font-bold">جاري الاتصال بالسحابة للمزامنة اللحظية...</span>
+                </div>
+                <div class="flex items-center gap-1.5 text-slate-400">
+                    <span>معرّف الاتصال:</span>
+                    <code id="session-user-id" class="bg-slate-800 text-emerald-300 px-2 py-0.5 rounded font-mono text-[10px] select-all" dir="ltr">...</code>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 no-print">
+        
+        <!-- KPI Summary Cards -->
+        <section class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6" id="kpi-section">
+            <!-- Populated via JS -->
+        </section>
+
+        <!-- Navigation Tabs -->
+        <div class="flex overflow-x-auto gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200/80 mb-6">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition bg-slate-900 text-white shadow-sm">
+                <i data-lucide="layout-grid" class="w-4 h-4"></i>
+                <span>حالة البرادات</span>
+            </button>
+            <button onclick="switchTab('manager')" id="tab-manager" class="tab-btn flex-1 min-w-[155px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+                <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                <span>لوحة المدير والمطابخ</span>
+            </button>
+            <button onclick="switchTab('logs')" id="tab-logs" class="tab-btn flex-1 min-w-[130px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+                <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+                <span>سجل القراءات</span>
+            </button>
+            <button onclick="switchTab('qr')" id="tab-qr" class="tab-btn flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+                <i data-lucide="qr-code" class="w-4 h-4"></i>
+                <span>أكواد QR والملصقات</span>
+            </button>
+            <button onclick="switchTab('units')" id="tab-units" class="tab-btn flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+                <i data-lucide="settings-2" class="w-4 h-4"></i>
+                <span>الوحدات والأوقات</span>
+            </button>
+        </div>
+
+        <!-- TAB 1: Live Units Status & Quick Scan -->
+        <div id="view-dashboard" class="space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-blue-50/80 border border-blue-200 rounded-2xl p-4">
+                <div class="flex items-start gap-3">
+                    <div class="bg-blue-600 text-white p-2 rounded-xl mt-0.5 shrink-0">
+                        <i data-lucide="scan-line" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-blue-950 text-sm sm:text-base">تسجيل سريع عبر مسح QR أو اختيار البراد</h2>
+                        <p class="text-xs sm:text-sm text-blue-800/80 mt-0.5">اضغط على أي براد أدناه لمحاكاة مسح ملصق QR الموجود على بابه وإدخال درجة الحرارة فوراً.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-600 bg-white px-3 py-2 rounded-xl border border-blue-100 shrink-0">
+                    <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i>
+                    <span id="current-date-display"></span>
+                </div>
+            </div>
+
+            <!-- Units Grid -->
+            <div id="units-status-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- TAB 2: Official HACCP Log Table -->
+        <div id="view-logs" class="hidden space-y-4">
+            <!-- Toolbar & Filters -->
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                    <div>
+                        <h2 class="font-extrabold text-lg text-slate-900">جدول مراقبة درجات الحرارة اليومي (نموذج التفتيش)</h2>
+                        <p class="text-xs text-slate-500">سجل معتمد لمتابعة الفترات (صباحي / ظهيرة / مسائي) والإجراءات التصحيحية</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="exportToCSV()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 transition">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                            <span>تصدير Excel (CSV)</span>
+                        </button>
+                        <button onclick="printHACCPLog()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 transition">
+                            <i data-lucide="printer" class="w-4 h-4"></i>
+                            <span>طباعة تقرير HACCP</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Filters Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+                    <div class="relative">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute right-3 top-3"></i>
+                        <input type="text" id="filter-search" oninput="renderLogsTable()" placeholder="بحث باسم البراد أو الموظف..." class="w-full pr-9 pl-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <select id="filter-unit" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="all">جميع البرادات والمجمدات</option>
+                    </select>
+                    <select id="filter-shift" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="all">جميع الفترات</option>
+                    </select>
+                    <select id="filter-status" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="all">جميع الحالات</option>
+                        <option value="safe">مطابق (آمن)</option>
+                        <option value="warning">تحذير (مراجعة)</option>
+                        <option value="danger">خطر (خارج النطاق)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Table Container -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-right border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100/80 border-b border-slate-200 text-slate-600 text-xs font-extrabold uppercase">
+                                <th class="py-3.5 px-4">التاريخ والوقت</th>
+                                <th class="py-3.5 px-4">اسم البراد / الوحدة</th>
+                                <th class="py-3.5 px-4">الفترة</th>
+                                <th class="py-3.5 px-4">الحرارة</th>
+                                <th class="py-3.5 px-4">حالة HACCP</th>
+                                <th class="py-3.5 px-4">الإجراء التصحيحي / ملاحظات</th>
+                                <th class="py-3.5 px-4">المسؤول</th>
+                                <th class="py-3.5 px-4 text-center">إجراء</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logs-table-body" class="divide-y divide-slate-100 text-sm">
+                            <!-- Populated by JS -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="empty-logs-msg" class="hidden py-12 text-center text-slate-400">
+                    <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 opacity-40"></i>
+                    <p class="font-bold">لا توجد سجلات مطابقة لمعايير البحث</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 3: QR Codes Generator & Printable Stickers -->
+        <div id="view-qr" class="hidden space-y-6">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-extrabold text-lg text-slate-900">ملصقات QR Code الشاملة للبرادات والمجمدات</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">يتضمن كل QR: الاسم، الرقم، الحرارة المثالية، آخر قراءة، اسم القارئ، وتاريخ وساعة القراءة.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <select id="qr-mode-select" onchange="renderQRCards()" class="bg-slate-50 border border-slate-300 text-slate-800 font-bold text-xs sm:text-sm px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="full_data">محتوى QR: بطاقة البيانات الكاملة</option>
+                        <option value="scan_link">محتوى QR: رابط فتح نموذج التسجيل</option>
+                    </select>
+                    <button onclick="printQRStickers()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 shrink-0 shadow-sm transition">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span>طباعة جميع ملصقات QR</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="qr-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- TAB 4: Manage Units & 3 Daily Schedule Times -->
+        <div id="view-units" class="hidden space-y-6">
+            <!-- Schedule Configuration Card (3 Daily Readings) -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                            <i data-lucide="clock" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-extrabold text-base sm:text-lg text-slate-900">تحديد أوقات القراءات الثلاث اليومية</h2>
+                            <p class="text-xs text-slate-500">حدد الساعات المطلوبة لفحص البرادات يومياً لتفعيل المتابعة والتنبيهات التلقائية للمدير.</p>
+                        </div>
+                    </div>
+                    <button onclick="saveScheduleSettings()" class="bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition shrink-0">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>حفظ أوقات الفحص</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="schedule-inputs-grid">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Units Header -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                    <h2 class="font-extrabold text-lg text-slate-900">إعدادات البرادات والمجمدات والمطابخ</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">إضافة وحدات تبريد جديدة، تحديد المطبخ التابع لها، والحرارة المثالية والحدود الآمنة.</p>
+                </div>
+                <button onclick="openUnitModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 shrink-0 shadow-sm transition">
+                    <i data-lucide="plus" class="w-4 h-4"></i>
+                    <span>إضافة براد / مجمد جديد</span>
+                </button>
+            </div>
+
+            <div id="manage-units-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- TAB 5: Manager Dashboard & Kitchen Oversight -->
+        <div id="view-manager" class="hidden space-y-6">
+            <!-- Manager Settings & Auto-Notification Config -->
+            <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-md space-y-4">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-extrabold text-lg">لوحة مراقبة المدير — متابعة المطابخ والإشعارات التلقائية</h2>
+                            <p class="text-xs text-slate-400 mt-0.5">فحص التزام كل مطبخ بالقراءات الثلاث اليومية وتلقي تنبيهات فورية عند وجود فروقات أو أعطال.</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="runMissedReadingsCheck(true)" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition">
+                            <i data-lucide="radar" class="w-4 h-4"></i>
+                            <span>فحص القراءات المتأخرة الآن</span>
+                        </button>
+                        <button onclick="openNotificationsModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition">
+                            <i data-lucide="bell-ring" class="w-4 h-4 text-red-400"></i>
+                            <span>سجل التنبيهات (<span id="manager-alert-count">0</span>)</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Manager Contact & Deviation Threshold Settings -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">اسم المدير المسؤول</label>
+                        <input type="text" id="mgr-name" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">رقم واتساب المدير (للتنبيه السريع)</label>
+                        <input type="text" id="mgr-phone" placeholder="9639xxxxxxxx" dir="ltr" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-white text-left focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">تنبيه عند فرق حرارة يتجاوز (°C)</label>
+                        <input type="number" step="0.5" min="0.5" id="mgr-diff-threshold" dir="ltr" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-white text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <label class="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer bg-slate-800 px-3 py-2 rounded-xl border border-slate-700 flex-1">
+                            <input type="checkbox" id="mgr-sound-toggle" class="rounded accent-emerald-500">
+                            <span>تنبيه صوتي</span>
+                        </label>
+                        <button onclick="saveManagerSettings()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition shrink-0">
+                            حفظ الإعدادات
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kitchen Filter Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+                <div class="flex items-center gap-2 flex-wrap" id="kitchen-filter-pills">
+                    <!-- Populated via JS -->
+                </div>
+                <div class="flex items-center gap-2 text-xs font-bold text-slate-600 shrink-0">
+                    <span>تاريخ المتابعة:</span>
+                    <input type="date" id="manager-date-picker" onchange="renderManagerDashboard()" class="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-slate-800" dir="ltr">
+                </div>
+            </div>
+
+            <!-- Kitchens Compliance Cards & 3-Readings Matrix -->
+            <div id="manager-kitchens-container" class="space-y-5">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 1: Temperature Entry Modal (Triggered via QR Scan or Button)    -->
+    <!-- ===================================================================== -->
+    <div id="log-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+        <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200 max-h-[92vh] flex flex-col">
+            
+            <!-- Modal Header -->
+            <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div id="modal-qr-badge" class="hidden bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                        <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+                        <span>مسح QR مباشر</span>
+                    </div>
+                    <h3 class="font-extrabold text-base sm:text-lg" id="log-modal-title">تسجيل قراءة درجة الحرارة</h3>
+                </div>
+                <button onclick="closeLogModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Modal Body (Scrollable) -->
+            <form id="temp-log-form" onsubmit="handleLogSubmit(event)" class="p-5 space-y-4 overflow-y-auto">
+                
+                <!-- Unit Selection -->
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5">البراد / المجمد المستهدف <span class="text-red-500">*</span></label>
+                    <select id="log-unit-select" onchange="onLogUnitChange()" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <!-- Options injected via JS -->
+                    </select>
+                    <div id="unit-limit-hint" class="mt-1.5 text-xs font-semibold text-slate-500 flex items-center gap-1.5">
+                        <!-- Dynamic limit info -->
+                    </div>
+                </div>
+
+                <!-- Shift & Timestamp Row -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1.5">فترة الفحص (من الـ 3 قراءات اليومية) <span class="text-red-500">*</span></label>
+                        <select id="log-shift" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            <!-- Dynamically populated from scheduleTimes -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1.5">التاريخ والوقت</label>
+                        <input type="datetime-local" id="log-datetime" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" dir="ltr">
+                    </div>
+                </div>
+
+                <!-- Temperature Input with Quick Stepper -->
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <label class="block text-xs font-extrabold text-slate-700 mb-2 text-center">درجة الحرارة المقاسة (°C) <span class="text-red-500">*</span></label>
+                    <div class="flex items-center justify-center gap-3">
+                        <button type="button" onclick="adjustTemp(-0.5)" class="w-12 h-12 rounded-2xl bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 flex items-center justify-center text-slate-700 font-extrabold text-xl shadow-sm transition">
+                            -
+                        </button>
+                        <div class="relative w-36">
+                            <input type="number" step="0.1" id="log-temp-input" oninput="evaluateLiveTemp()" required placeholder="0.0" class="w-full text-center text-3xl font-extrabold py-2.5 px-3 bg-white border-2 border-slate-300 rounded-2xl focus:outline-none focus:border-emerald-500" dir="ltr">
+                            <span class="absolute left-3 top-3.5 text-slate-400 font-bold text-sm">°C</span>
+                        </div>
+                        <button type="button" onclick="adjustTemp(0.5)" class="w-12 h-12 rounded-2xl bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 flex items-center justify-center text-slate-700 font-extrabold text-xl shadow-sm transition">
+                            +
+                        </button>
+                    </div>
+
+                    <!-- Live HACCP Status Feedback Banner -->
+                    <div id="live-haccp-feedback" class="mt-3 p-3 rounded-xl text-center text-xs sm:text-sm font-bold transition-all hidden">
+                        <!-- Dynamically updated -->
+                    </div>
+                </div>
+
+                <!-- Corrective Action Box (Shown automatically when Warning or Danger) -->
+                <div id="corrective-action-container" class="hidden bg-red-50/90 border border-red-200 p-3.5 rounded-2xl space-y-2.5">
+                    <div class="flex items-center gap-2 text-red-800 font-extrabold text-xs sm:text-sm">
+                        <i data-lucide="alert-triangle" class="w-4 h-4 text-red-600 shrink-0"></i>
+                        <span>مطلوب إجراء تصحيحي فوري (حسب نظام HACCP):</span>
+                    </div>
+                    <select id="corrective-preset" onchange="applyCorrectivePreset()" class="w-full px-3 py-2 bg-white border border-red-200 rounded-xl text-xs sm:text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-red-500">
+                        <option value="">-- اختر إجراءً تصحيحياً سريعاً أو اكتب بالأسفل --</option>
+                        <option value="فحص إحكام إغلاق الباب وإعادة القياس بعد 15 دقيقة">فحص إحكام إغلاق الباب وإعادة القياس بعد 15 دقيقة</option>
+                        <option value="تعديل الترموستات وتقليل التحميل داخل البراد">تعديل الترموستات وتقليل التحميل داخل البراد</option>
+                        <option value="نقل المواد الغذائية الحساسة إلى براد بديل فوراً">نقل المواد الغذائية الحساسة إلى براد بديل فوراً</option>
+                        <option value="إبلاغ قسم الصيانة لوجود عطل في التبريد">إبلاغ قسم الصيانة لوجود عطل في التبريد</option>
+                        <option value="إتلاف المواد التي تجاوزت الفترة الزمنية الحرجة">إتلاف المواد التي تجاوزت الفترة الزمنية الحرجة</option>
+                    </select>
+                    <input type="text" id="log-corrective-text" placeholder="تفاصيل الإجراء التصحيحي المتخذ..." class="w-full px-3 py-2 bg-white border border-red-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
+                </div>
+
+                <!-- Staff Name -->
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5">اسم الموظف / الشيف المسؤول <span class="text-red-500">*</span></label>
+                    <input type="text" id="log-staff-name" required placeholder="مثال: الشيف أحمد محمود" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <!-- Optional Notes -->
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1.5">ملاحظات إضافية (اختياري)</label>
+                    <input type="text" id="log-notes" placeholder="مثال: تم استلام شحنة لحوم جديدة..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="pt-2 flex items-center gap-2">
+                    <button type="button" onclick="closeLogModal()" class="w-1/3 py-3 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200 transition">
+                        إلغاء
+                    </button>
+                    <button type="submit" class="w-2/3 py-3 rounded-xl font-extrabold text-sm text-white bg-emerald-600 hover:bg-emerald-500 shadow-lg shadow-emerald-600/20 transition flex items-center justify-center gap-2">
+                        <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                        <span>حفظ واعتماد القراءة</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 2: Add / Edit Refrigerator Unit Modal                           -->
+    <!-- ===================================================================== -->
+    <div id="unit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+            <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
+                <h3 class="font-extrabold text-base" id="unit-modal-title">إضافة براد / مجمد جديد</h3>
+                <button onclick="closeUnitModal()" class="text-slate-400 hover:text-white p-1 rounded-xl">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="unit-form" onsubmit="handleUnitSubmit(event)" class="p-5 space-y-4">
+                <input type="hidden" id="edit-unit-id">
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">اسم البراد / المجمد <span class="text-red-500">*</span></label>
+                    <input type="text" id="unit-name" required placeholder="مثال: براد الأسماك الطازجة" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1">المطبخ التابع له <span class="text-red-500">*</span></label>
+                        <input type="text" id="unit-kitchen" list="kitchens-datalist" required placeholder="مثال: المطبخ الرئيسي" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <datalist id="kitchens-datalist"></datalist>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1">القسم / الموقع الفرعي</label>
+                        <input type="text" id="unit-location" required placeholder="مثال: قسم التحضير" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-extrabold text-slate-700 mb-1">نوع الوحدة (معيار HACCP)</label>
+                    <select id="unit-type" onchange="setDefaultLimitsByType()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <option value="chiller">براد تبريد (Chiller: 0°C إلى 4°C)</option>
+                        <option value="freezer">مجمد / فريزر (Freezer: -18°C أو أقل)</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-3 gap-2.5">
+                    <div>
+                        <label class="block text-[11px] font-extrabold text-slate-700 mb-1">الحد الأدنى (°C)</label>
+                        <input type="number" step="0.5" id="unit-min" required value="0" class="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-center" dir="ltr">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-extrabold text-emerald-700 mb-1">الحرارة المثالية (°C)</label>
+                        <input type="number" step="0.5" id="unit-ideal" required value="2" class="w-full px-2.5 py-2 bg-emerald-50 border border-emerald-300 rounded-xl text-sm font-extrabold text-emerald-800 text-center" dir="ltr">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-extrabold text-slate-700 mb-1">الحد الأقصى (°C)</label>
+                        <input type="number" step="0.5" id="unit-max" required value="4" class="w-full px-2.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold text-center" dir="ltr">
+                    </div>
+                </div>
+                <div class="pt-2 flex gap-2">
+                    <button type="button" onclick="closeUnitModal()" class="w-1/3 py-2.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100">إلغاء</button>
+                    <button type="submit" class="w-2/3 py-2.5 rounded-xl font-extrabold text-sm text-white bg-emerald-600 hover:bg-emerald-500">حفظ الوحدة</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 3: Manager Automatic Notifications Center                       -->
+    <!-- ===================================================================== -->
+    <div id="notifications-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+        <div class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[88vh] flex flex-col">
+            <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-red-500/20 text-red-400 p-2 rounded-xl border border-red-500/30">
+                        <i data-lucide="bell-ring" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-extrabold text-base">مركز إشعارات المدير التلقائية</h3>
+                        <p class="text-[11px] text-slate-400">تنبيهات فورية لأعطال التبريد، فروقات الحرارة، والقراءات المتأخرة</p>
+                    </div>
+                </div>
+                <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="px-5 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between gap-2 shrink-0">
+                <span class="text-xs font-bold text-slate-600" id="notif-summary-text">جميع التنبيهات</span>
+                <div class="flex items-center gap-2">
+                    <button onclick="markAllAlertsRead()" class="text-xs font-bold text-emerald-700 hover:bg-emerald-50 px-2.5 py-1.5 rounded-lg transition">تحديد الكل كمقروء</button>
+                    <button onclick="clearResolvedAlerts()" class="text-xs font-bold text-slate-500 hover:text-red-600 hover:bg-red-50 px-2.5 py-1.5 rounded-lg transition">مسح المقروءة</button>
+                </div>
+            </div>
+
+            <div id="notifications-list" class="p-4 space-y-3 overflow-y-auto flex-1">
+                <!-- Populated via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- HIDDEN PRINT AREA (For Health Inspection Report & QR Stickers)        -->
+    <!-- ===================================================================== -->
+    <div id="print-area" class="hidden"></div>
+
+    <!-- Application Logic with Real-Time Cloud Sync -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =========================================================================
+        // 🔑 إعدادات Firebase الخاصة بك (مشروع JDH PROJECT - متصل وجاهز)
+        // =========================================================================
+        const MANUAL_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyCQ4KX5gXQt6ZjmmqJ6im9X7z2tLUA3sPc",
+            authDomain: "jdh-project-de0a4.firebaseapp.com",
+            projectId: "jdh-project-de0a4",
+            storageBucket: "jdh-project-de0a4.firebasestorage.app",
+            messagingSenderId: "245058750336",
+            appId: "1:245058750336:web:de1d20b4056954818de365"
+        };
+
+        function safeLucideIcons() {
+            if (window.lucide && typeof window.lucide.createIcons === 'function') {
+                window.lucide.createIcons();
+            }
+        }
+
+        // ==========================================
+        // 1. CLOUD INITIALIZATION & STATE MANAGEMENT
+        // ==========================================
+        const appId = 'jdh-haccp-v1';
+        const hasManualConfig = MANUAL_FIREBASE_CONFIG.apiKey && !MANUAL_FIREBASE_CONFIG.apiKey.includes("PUT_YOUR");
+
+        let firebaseConfig = null;
+        try {
+            if (hasManualConfig) {
+                firebaseConfig = MANUAL_FIREBASE_CONFIG;
+            } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+                firebaseConfig = typeof __firebase_config === 'string'
+                    ? JSON.parse(__firebase_config)
+                    : __firebase_config;
+            }
+        } catch (err) {
+            console.error('Invalid firebase config:', err);
+            firebaseConfig = hasManualConfig ? MANUAL_FIREBASE_CONFIG : null;
+        }
+
+        let app = null;
+        let db = null;
+        let auth = null;
+        let currentUser = null;
+        let isInitialAlertsLoad = true;
+        let lastStaffName = '';
+
+        const defaultSchedule = [
+            { id: 'slot1', name: 'القراءة الأولى (الصباحية)', time: '08:00' },
+            { id: 'slot2', name: 'القراءة الثانية (الظهيرة)', time: '14:00' },
+            { id: 'slot3', name: 'القراءة الثالثة (المسائية)', time: '20:00' }
+        ];
+
+        const defaultManagerConfig = {
+            name: 'مدير الجودة والعمليات',
+            phone: '',
+            maxDiffThreshold: 3.0,
+            soundEnabled: true
+        };
+
+        const defaultUnits = [
+            { id: 'FRG-01', name: 'براد اللحوم والدواجن الطازجة', kitchen: 'المطبخ الرئيسي', location: 'قسم الجزارة والتحضير', type: 'chiller', minTemp: 0, idealTemp: 2, maxTemp: 4 },
+            { id: 'FRG-02', name: 'براد الألبان والأجبان', kitchen: 'المطبخ البارد', location: 'قسم السلطات والألبان', type: 'chiller', minTemp: 0, idealTemp: 2.5, maxTemp: 4 },
+            { id: 'FRG-03', name: 'براد الخضار والفواكه', kitchen: 'المطبخ البارد', location: 'قسم التحضير الأولي', type: 'chiller', minTemp: 1, idealTemp: 3, maxTemp: 5 },
+            { id: 'FRG-04', name: 'براد الحلويات والكريمة', kitchen: 'مطبخ الحلويات', location: 'ركن التزيين والتبريد', type: 'chiller', minTemp: 0, idealTemp: 2, maxTemp: 4 },
+            { id: 'FRZ-01', name: 'مجمد اللحوم والدواجن الرئيسي', kitchen: 'المستودع المركزي', location: 'غرفة التجميد 1', type: 'freezer', minTemp: -25, idealTemp: -20, maxTemp: -18 },
+            { id: 'FRZ-02', name: 'مجمد المأكولات البحرية', kitchen: 'المطبخ الرئيسي', location: 'المطبخ الساخن', type: 'freezer', minTemp: -25, idealTemp: -19, maxTemp: -18 }
+        ];
+
+        function generateInitialLogs() {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            return [
+                {
+                    id: 'LOG-101',
+                    unitId: 'FRG-01',
+                    timestamp: `${todayStr}T08:15`,
+                    shiftId: 'slot1',
+                    shift: 'القراءة الأولى (الصباحية)',
+                    temp: 2.4,
+                    status: 'safe',
+                    correctiveAction: '',
+                    staff: 'الشيف سامر العلي',
+                    notes: 'تم فحص الرفوف وترتيب اللحوم'
+                },
+                {
+                    id: 'LOG-102',
+                    unitId: 'FRG-02',
+                    timestamp: `${todayStr}T08:20`,
+                    shiftId: 'slot1',
+                    shift: 'القراءة الأولى (الصباحية)',
+                    temp: 3.5,
+                    status: 'safe',
+                    correctiveAction: '',
+                    staff: 'الشيف سامر العلي',
+                    notes: ''
+                },
+                {
+                    id: 'LOG-103',
+                    unitId: 'FRZ-01',
+                    timestamp: `${todayStr}T08:25`,
+                    shiftId: 'slot1',
+                    shift: 'القراءة الأولى (الصباحية)',
+                    temp: -19.5,
+                    status: 'safe',
+                    correctiveAction: '',
+                    staff: 'الشيف سامر العلي',
+                    notes: ''
+                },
+                {
+                    id: 'LOG-104',
+                    unitId: 'FRG-04',
+                    timestamp: `${todayStr}T14:10`,
+                    shiftId: 'slot2',
+                    shift: 'القراءة الثانية (الظهيرة)',
+                    temp: 5.8,
+                    status: 'danger',
+                    correctiveAction: 'فحص إحكام إغلاق الباب وإعادة القياس بعد 15 دقيقة',
+                    staff: 'الشيف ريم حسن',
+                    notes: 'الباب كان مفتوحاً أثناء التحضير'
+                },
+                {
+                    id: 'LOG-105',
+                    unitId: 'FRG-04',
+                    timestamp: `${todayStr}T14:30`,
+                    shiftId: 'slot2',
+                    shift: 'القراءة الثانية (الظهيرة)',
+                    temp: 3.1,
+                    status: 'safe',
+                    correctiveAction: 'عادت الحرارة للنطاق الآمن بعد إغلاق الباب',
+                    staff: 'الشيف ريم حسن',
+                    notes: 'قراءة متابعة'
+                }
+            ];
+        }
+
+        const defaultInitialAlerts = [
+            {
+                id: 'ALT-INIT-1',
+                type: 'danger',
+                title: 'تجاوز الحد الحرج: براد الحلويات والكريمة (FRG-04)',
+                message: 'تم تسجيل قراءة 5.8°C في مطبخ الحلويات بواسطة الشيف ريم حسن (الحد الآمن: 0°C إلى 4°C).',
+                kitchen: 'مطبخ الحلويات',
+                unitId: 'FRG-04',
+                timestamp: new Date().toISOString(),
+                read: false
+            }
+        ];
+
+        // Live state synced with cloud database
+        let units = [...defaultUnits];
+        let logs = [];
+        let scheduleTimes = [...defaultSchedule];
+        let managerConfig = { ...defaultManagerConfig };
+        let managerAlerts = [];
+        let activeKitchenFilter = 'all';
+
+        // Strict public shared data path helpers
+        function getPublicCollection(colName) {
+            return collection(db, 'artifacts', appId, 'public', 'data', colName);
+        }
+
+        function getPublicDoc(colName, docId) {
+            return doc(db, 'artifacts', appId, 'public', 'data', colName, docId);
+        }
+
+        function setCloudStatus(state, text) {
+            const dot = document.getElementById('cloud-status-dot');
+            const label = document.getElementById('cloud-status-text');
+            if (!dot || !label) return;
+            dot.classList.remove('bg-amber-400', 'bg-emerald-400', 'bg-red-500', 'animate-pulse');
+            if (state === 'connected') {
+                dot.classList.add('bg-emerald-400');
+            } else if (state === 'error') {
+                dot.classList.add('bg-red-500');
+            } else {
+                dot.classList.add('bg-amber-400', 'animate-pulse');
+            }
+            label.textContent = text;
+        }
+
+        // Cloud write operations (guarded by auth)
+        async function saveUnitToCloud(unitObj) {
+            if (!currentUser || !db) return;
+            try {
+                await setDoc(getPublicDoc('units', unitObj.id), unitObj);
+            } catch (err) {
+                console.error('Error saving unit:', err);
+                showToast('تعذر حفظ بيانات الوحدة سحابياً', 'warning');
+            }
+        }
+
+        async function deleteUnitFromCloud(unitId) {
+            if (!currentUser || !db) return;
+            try {
+                await deleteDoc(getPublicDoc('units', unitId));
+            } catch (err) {
+                console.error('Error deleting unit:', err);
+                showToast('تعذر حذف الوحدة من السحابة', 'warning');
+            }
+        }
+
+        async function saveLogToCloud(logObj) {
+            if (!currentUser || !db) return;
+            try {
+                await setDoc(getPublicDoc('logs', logObj.id), logObj);
+            } catch (err) {
+                console.error('Error saving log:', err);
+                showToast('تعذر حفظ القراءة في السحابة', 'warning');
+            }
+        }
+
+        async function deleteLogFromCloud(logId) {
+            if (!currentUser || !db) return;
+            try {
+                await deleteDoc(getPublicDoc('logs', logId));
+            } catch (err) {
+                console.error('Error deleting log:', err);
+                showToast('تعذر حذف القراءة من السحابة', 'warning');
+            }
+        }
+
+        async function saveAlertToCloud(alertObj) {
+            if (!currentUser || !db) return;
+            try {
+                await setDoc(getPublicDoc('alerts', alertObj.id), alertObj);
+            } catch (err) {
+                console.error('Error saving alert:', err);
+            }
+        }
+
+        async function deleteAlertFromCloud(alertId) {
+            if (!currentUser || !db) return;
+            try {
+                await deleteDoc(getPublicDoc('alerts', alertId));
+            } catch (err) {
+                console.error('Error deleting alert:', err);
+            }
+        }
+
+        async function saveScheduleToCloud(slots) {
+            if (!currentUser || !db) return;
+            try {
+                await setDoc(getPublicDoc('settings', 'schedule'), { slots });
+            } catch (err) {
+                console.error('Error saving schedule:', err);
+                showToast('تعذر حفظ أوقات الفحص سحابياً', 'warning');
+            }
+        }
+
+        async function saveManagerConfigToCloud(cfg) {
+            if (!currentUser || !db) return;
+            try {
+                await setDoc(getPublicDoc('settings', 'manager'), cfg);
+            } catch (err) {
+                console.error('Error saving manager config:', err);
+                showToast('تعذر حفظ إعدادات المدير سحابياً', 'warning');
+            }
+        }
+
+        // Seed initial data once if cloud database is empty
+        async function seedCloudIfEmpty() {
+            if (!currentUser || !db) return;
+            try {
+                const unitsSnap = await getDocs(getPublicCollection('units'));
+                if (unitsSnap.empty) {
+                    const promises = [];
+                    defaultUnits.forEach(u => promises.push(setDoc(getPublicDoc('units', u.id), u)));
+                    generateInitialLogs().forEach(l => promises.push(setDoc(getPublicDoc('logs', l.id), l)));
+                    defaultInitialAlerts.forEach(a => promises.push(setDoc(getPublicDoc('alerts', a.id), a)));
+                    promises.push(setDoc(getPublicDoc('settings', 'schedule'), { slots: defaultSchedule }));
+                    promises.push(setDoc(getPublicDoc('settings', 'manager'), defaultManagerConfig));
+                    await Promise.all(promises);
+                }
+            } catch (err) {
+                console.error('Seed check error:', err);
+            }
+        }
+
+        // Attach real-time listeners after authentication
+        function attachRealtimeListeners() {
+            if (!currentUser || !db) return;
+
+            // 1. Units listener
+            onSnapshot(getPublicCollection('units'), (snap) => {
+                const fetched = [];
+                snap.forEach(d => {
+                    const u = d.data();
+                    fetched.push({
+                        ...u,
+                        kitchen: u.kitchen || 'المطبخ الرئيسي',
+                        idealTemp: typeof u.idealTemp === 'number' ? u.idealTemp : (u.type === 'freezer' ? -19 : 2)
+                    });
+                });
+                if (fetched.length > 0) {
+                    units = fetched.sort((a, b) => a.id.localeCompare(b.id));
+                }
+                refreshAllViews();
+            }, (err) => {
+                console.error('Units listener error:', err);
+                setCloudStatus('error', 'خطأ في مزامنة الوحدات');
+            });
+
+            // 2. Logs listener
+            onSnapshot(getPublicCollection('logs'), (snap) => {
+                const fetched = [];
+                snap.forEach(d => fetched.push(d.data()));
+                logs = fetched.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+                refreshAllViews();
+            }, (err) => {
+                console.error('Logs listener error:', err);
+                setCloudStatus('error', 'خطأ في مزامنة سجل القراءات');
+            });
+
+            // 3. Manager Alerts listener (triggers live sound + toast on remote alerts)
+            onSnapshot(getPublicCollection('alerts'), (snap) => {
+                const prevUnreadIds = new Set(managerAlerts.filter(a => !a.read).map(a => a.id));
+                const fetched = [];
+                snap.forEach(d => fetched.push(d.data()));
+                managerAlerts = fetched.sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+
+                if (!isInitialAlertsLoad) {
+                    const newlyArrived = managerAlerts.filter(a => !a.read && !prevUnreadIds.has(a.id));
+                    if (newlyArrived.length > 0) {
+                        playAlertBeep();
+                        showToast(`🔔 تنبيه لحظي جديد: ${newlyArrived[0].title}`, 'warning');
+                    }
+                }
+                isInitialAlertsLoad = false;
+
+                updateNotificationBadges();
+                if (!document.getElementById('notifications-modal').classList.contains('hidden')) {
+                    renderNotificationsList();
+                }
+            }, (err) => {
+                console.error('Alerts listener error:', err);
+            });
+
+            // 4. Settings listener (schedule & manager config)
+            onSnapshot(getPublicCollection('settings'), (snap) => {
+                snap.forEach(d => {
+                    if (d.id === 'schedule' && Array.isArray(d.data().slots)) {
+                        scheduleTimes = d.data().slots;
+                    }
+                    if (d.id === 'manager') {
+                        managerConfig = { ...defaultManagerConfig, ...d.data() };
+                    }
+                });
+                refreshAllViews();
+            }, (err) => {
+                console.error('Settings listener error:', err);
+            });
+        }
+
+        function activateLocalFallback(statusMsg) {
+            setCloudStatus('error', statusMsg);
+            const userIdDisplay = document.getElementById('session-user-id');
+            if (userIdDisplay) userIdDisplay.textContent = 'local-preview';
+            if (logs.length === 0) logs = generateInitialLogs();
+            if (managerAlerts.length === 0) managerAlerts = [...defaultInitialAlerts];
+            refreshAllViews();
+        }
+
+        async function initCloudSync() {
+            if (!firebaseConfig) {
+                activateLocalFallback('وضع العرض المحلي (أضف مفاتيح Firebase في الكود لتفعيل المزامنة)');
+                return;
+            }
+
+            try {
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
+
+                let cred;
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    cred = await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    cred = await signInAnonymously(auth);
+                }
+                currentUser = cred.user;
+
+                const userIdDisplay = document.getElementById('session-user-id');
+                if (userIdDisplay) userIdDisplay.textContent = currentUser.uid;
+
+                setCloudStatus('connected', 'متصل بالسحابة • المزامنة اللحظية مفعّلة لجميع المطابخ والمدير');
+
+                await seedCloudIfEmpty();
+                attachRealtimeListeners();
+            } catch (err) {
+                console.error('Cloud auth/init error:', err);
+                activateLocalFallback('تعذر الاتصال بالسحابة حالياً — تم تفعيل الوضع المحلي');
+                showToast('حدث خطأ أثناء الاتصال بقاعدة البيانات السحابية، يعمل النظام محلياً الآن', 'warning');
+            }
+        }
+
+        // ==========================================
+        // 1.5 MANAGER AUTO-NOTIFICATION ENGINE
+        // ==========================================
+        function playAlertBeep() {
+            if (!managerConfig.soundEnabled) return;
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                osc.frequency.setValueAtTime(660, ctx.currentTime + 0.15);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.4);
+            } catch (e) {
+                // Audio context blocked before interaction
+            }
+        }
+
+        function pushManagerAlert({ type, title, message, kitchen, unitId }) {
+            const alertObj = {
+                id: 'ALT-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                type,
+                title,
+                message,
+                kitchen,
+                unitId,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+            managerAlerts.unshift(alertObj);
+            saveAlertToCloud(alertObj);
+            updateNotificationBadges();
+            playAlertBeep();
+            showToast(`🔔 إشعار تلقائي للمدير: ${title}`, 'warning');
+        }
+
+        function updateNotificationBadges() {
+            const unreadCount = managerAlerts.filter(a => !a.read).length;
+            const badge = document.getElementById('notif-badge');
+            const mgrCount = document.getElementById('manager-alert-count');
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+            if (mgrCount) mgrCount.textContent = unreadCount;
+        }
+
+        function openNotificationsModal() {
+            renderNotificationsList();
+            document.getElementById('notifications-modal').classList.remove('hidden');
+            safeLucideIcons();
+        }
+
+        function closeNotificationsModal() {
+            document.getElementById('notifications-modal').classList.add('hidden');
+        }
+
+        function renderNotificationsList() {
+            const list = document.getElementById('notifications-list');
+            const summary = document.getElementById('notif-summary-text');
+            const unread = managerAlerts.filter(a => !a.read).length;
+            summary.textContent = `إجمالي التنبيهات: ${managerAlerts.length} (غير مقروء: ${unread})`;
+
+            if (managerAlerts.length === 0) {
+                list.innerHTML = `
+                    <div class="py-12 text-center text-slate-400">
+                        <i data-lucide="check-circle-2" class="w-12 h-12 mx-auto mb-2 text-emerald-500 opacity-60"></i>
+                        <p class="font-bold text-slate-600">لا توجد تنبيهات أو مشاكل حالياً</p>
+                        <p class="text-xs mt-1">جميع البرادات تعمل ضمن النطاق الآمن.</p>
+                    </div>
+                `;
+                safeLucideIcons();
+                return;
+            }
+
+            list.innerHTML = managerAlerts.map(a => {
+                const isDanger = a.type === 'danger';
+                const isDiff = a.type === 'diff';
+                const isMissed = a.type === 'missed';
+                const cardStyle = a.read
+                    ? 'bg-slate-50 border-slate-200 opacity-75'
+                    : (isDanger ? 'bg-red-50/90 border-red-300 ring-1 ring-red-200' : (isDiff ? 'bg-purple-50/90 border-purple-300' : 'bg-amber-50/90 border-amber-300'));
+                const iconName = isDanger ? 'alert-octagon' : (isDiff ? 'activity' : (isMissed ? 'clock' : 'alert-triangle'));
+                const iconColor = isDanger ? 'text-red-600' : (isDiff ? 'text-purple-600' : 'text-amber-600');
+                const dt = new Date(a.timestamp);
+                const timeLabel = `${dt.toLocaleDateString('ar-EG')} - ${dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`;
+
+                const waText = encodeURIComponent(`🚨 تنبيه نظام HACCP للمدير (${managerConfig.name}):\n${a.title}\nالمطبخ: ${a.kitchen}\nالتفاصيل: ${a.message}\nالوقت: ${timeLabel}`);
+                const waUrl = managerConfig.phone ? `https://wa.me/${managerConfig.phone.replace(/[^0-9]/g, '')}?text=${waText}` : `https://wa.me/?text=${waText}`;
+
+                return `
+                    <div class="p-3.5 rounded-2xl border ${cardStyle} transition">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-start gap-2.5">
+                                <i data-lucide="${iconName}" class="w-5 h-5 ${iconColor} shrink-0 mt-0.5"></i>
+                                <div>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <h4 class="font-extrabold text-xs sm:text-sm text-slate-900">${a.title}</h4>
+                                        ${!a.read ? '<span class="px-1.5 py-0.5 rounded bg-red-600 text-white text-[10px] font-bold">جديد</span>' : ''}
+                                    </div>
+                                    <p class="text-xs text-slate-700 mt-1 leading-relaxed">${a.message}</p>
+                                    <div class="flex items-center gap-3 mt-2 text-[11px] font-semibold text-slate-500">
+                                        <span>المطبخ: ${a.kitchen}</span>
+                                        <span>•</span>
+                                        <span>${timeLabel}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-3 pt-2.5 border-t border-slate-200/70 flex items-center justify-end gap-2">
+                            <a href="${waUrl}" target="_blank" class="inline-flex items-center gap-1 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-2.5 py-1.5 rounded-lg transition">
+                                <i data-lucide="send" class="w-3 h-3"></i>
+                                <span>إرسال واتساب للمدير</span>
+                            </a>
+                            ${!a.read ? `<button onclick="markAlertRead('${a.id}')" class="text-[11px] font-bold bg-white border border-slate-300 hover:bg-slate-100 text-slate-700 px-2.5 py-1.5 rounded-lg transition">تمت المراجعة</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            safeLucideIcons();
+        }
+
+        function markAlertRead(id) {
+            const idx = managerAlerts.findIndex(a => a.id === id);
+            if (idx !== -1) {
+                managerAlerts[idx].read = true;
+                saveAlertToCloud(managerAlerts[idx]);
+                updateNotificationBadges();
+                renderNotificationsList();
+            }
+        }
+
+        function markAllAlertsRead() {
+            managerAlerts.forEach(a => {
+                if (!a.read) {
+                    a.read = true;
+                    saveAlertToCloud(a);
+                }
+            });
+            updateNotificationBadges();
+            renderNotificationsList();
+        }
+
+        function clearResolvedAlerts() {
+            const toDelete = managerAlerts.filter(a => a.read);
+            toDelete.forEach(a => deleteAlertFromCloud(a.id));
+            managerAlerts = managerAlerts.filter(a => !a.read);
+            updateNotificationBadges();
+            renderNotificationsList();
+        }
+
+        function runMissedReadingsCheck(manualTrigger = false) {
+            const now = new Date();
+            const todayStr = now.toISOString().split('T')[0];
+            const currentHHMM = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            let missedFound = 0;
+
+            scheduleTimes.forEach(slot => {
+                if (currentHHMM > slot.time) {
+                    units.forEach(unit => {
+                        const hasReading = logs.some(l =>
+                            l.unitId === unit.id &&
+                            (l.timestamp || '').startsWith(todayStr) &&
+                            (l.shiftId === slot.id || l.shift === slot.name)
+                        );
+                        if (!hasReading) {
+                            missedFound++;
+                            const dedupeKey = `تأخر ${slot.name}: ${unit.name} (${unit.id})`;
+                            const alreadyAlertedToday = managerAlerts.some(a =>
+                                a.title === dedupeKey && (a.timestamp || '').startsWith(todayStr)
+                            );
+                            if (!alreadyAlertedToday) {
+                                pushManagerAlert({
+                                    type: 'missed',
+                                    title: dedupeKey,
+                                    message: `لم يتم تسجيل قراءة الحرارة المجدولة للساعة ${slot.time} في (${unit.kitchen}). يرجى المتابعة مع طاقم المطبخ.`,
+                                    kitchen: unit.kitchen,
+                                    unitId: unit.id
+                                });
+                            }
+                        }
+                    });
+                }
+            });
+
+            if (manualTrigger) {
+                if (missedFound === 0) {
+                    showToast('✅ ممتاز! جميع القراءات المستحقة حتى الآن مكتملة في كافة المطابخ.', 'success');
+                } else {
+                    showToast(`⚠️ تم رصد ${missedFound} قراءة مفقودة وإضافتها لمركز إشعارات المدير.`, 'warning');
+                }
+            }
+        }
+
+        // ==========================================
+        // 2. HACCP TEMPERATURE EVALUATION ENGINE
+        // ==========================================
+        function evaluateTemperature(temp, unit) {
+            if (!unit || isNaN(temp)) {
+                return {
+                    status: 'warning',
+                    label: 'غير محدد',
+                    badgeClass: 'bg-slate-100 text-slate-600 border-slate-200'
+                };
+            }
+
+            if (unit.type === 'freezer') {
+                if (temp <= unit.maxTemp && temp >= unit.minTemp) {
+                    return {
+                        status: 'safe',
+                        label: 'مطابق (آمن)',
+                        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    };
+                } else if (temp < unit.minTemp || (temp > unit.maxTemp && temp <= unit.maxTemp + 3)) {
+                    return {
+                        status: 'warning',
+                        label: 'تحذير (مراجعة مطلوبة)',
+                        badgeClass: 'bg-amber-50 text-amber-700 border-amber-200'
+                    };
+                } else {
+                    return {
+                        status: 'danger',
+                        label: 'خطر (خارج النطاق الآمن)',
+                        badgeClass: 'bg-red-50 text-red-700 border-red-200'
+                    };
+                }
+            } else {
+                if (temp >= unit.minTemp && temp <= unit.maxTemp) {
+                    return {
+                        status: 'safe',
+                        label: 'مطابق (آمن)',
+                        badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                    };
+                } else if (
+                    (temp > unit.maxTemp && temp <= unit.maxTemp + 1.5) ||
+                    (temp < unit.minTemp && temp >= unit.minTemp - 1.5)
+                ) {
+                    return {
+                        status: 'warning',
+                        label: 'تحذير (مراجعة مطلوبة)',
+                        badgeClass: 'bg-amber-50 text-amber-700 border-amber-200'
+                    };
+                } else {
+                    return {
+                        status: 'danger',
+                        label: 'خطر (خارج النطاق الآمن)',
+                        badgeClass: 'bg-red-50 text-red-700 border-red-200'
+                    };
+                }
+            }
+        }
+
+        // ==========================================
+        // 3. UI RENDERING & TABS
+        // ==========================================
+        function switchTab(tabId) {
+            ['dashboard', 'manager', 'logs', 'qr', 'units'].forEach(t => {
+                document.getElementById(`view-${t}`).classList.add('hidden');
+                const btn = document.getElementById(`tab-${t}`);
+                btn.classList.remove('bg-slate-900', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+            });
+
+            document.getElementById(`view-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`tab-${tabId}`);
+            activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
+            activeBtn.classList.add('bg-slate-900', 'text-white', 'shadow-sm');
+
+            if (tabId === 'manager') renderManagerDashboard();
+            if (tabId === 'qr') renderQRCards();
+            if (tabId === 'logs') renderLogsTable();
+            if (tabId === 'units') {
+                renderScheduleSettings();
+                renderManageUnits();
+            }
+            safeLucideIcons();
+        }
+
+        function renderKPIs() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todayLogs = logs.filter(l => (l.timestamp || '').startsWith(todayStr));
+            const safeCount = todayLogs.filter(l => l.status === 'safe').length;
+            const alertCount = todayLogs.filter(l => l.status === 'danger' || l.status === 'warning').length;
+            const complianceRate = todayLogs.length > 0 ? Math.round((safeCount / todayLogs.length) * 100) : 100;
+
+            const kpiHTML = `
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="snowflake" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500">إجمالي الوحدات</p>
+                        <p class="text-xl font-extrabold text-slate-900">${units.length} <span class="text-xs font-semibold text-slate-400">براد/مجمد</span></p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="check-circle" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500">قراءات اليوم</p>
+                        <p class="text-xl font-extrabold text-slate-900">${todayLogs.length} <span class="text-xs font-semibold text-slate-400">فحص مسجل</span></p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500">نسبة الالتزام HACCP</p>
+                        <p class="text-xl font-extrabold text-emerald-600">${complianceRate}%</p>
+                    </div>
+                </div>
+                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl ${alertCount > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-400'} flex items-center justify-center shrink-0">
+                        <i data-lucide="alert-octagon" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500">تنبيهات اليوم</p>
+                        <p class="text-xl font-extrabold ${alertCount > 0 ? 'text-red-600' : 'text-slate-800'}">${alertCount}</p>
+                    </div>
+                </div>
+            `;
+            document.getElementById('kpi-section').innerHTML = kpiHTML;
+        }
+
+        function renderUnitsStatusGrid() {
+            const grid = document.getElementById('units-status-grid');
+            const todayStr = new Date().toISOString().split('T')[0];
+
+            grid.innerHTML = units.map(unit => {
+                const unitLogs = logs.filter(l => l.unitId === unit.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+                const latest = unitLogs[0];
+
+                const slotsHTML = scheduleTimes.map((slot, idx) => {
+                    const slotLog = logs.find(l => l.unitId === unit.id && (l.timestamp || '').startsWith(todayStr) && (l.shiftId === slot.id || l.shift === slot.name));
+                    const isDone = !!slotLog;
+                    const bgClass = isDone
+                        ? (slotLog.status === 'safe' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200')
+                        : 'bg-slate-50 text-slate-400 border-slate-200';
+                    return `
+                        <div class="flex-1 text-center py-1 px-1.5 rounded-lg border ${bgClass} text-[10px] font-bold">
+                            <div>قراءة ${idx + 1} (${slot.time})</div>
+                            <div dir="ltr">${isDone ? `${slotLog.temp}°C ✓` : 'لم تُقرأ'}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                let statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">بانتظار القراءة</span>`;
+                let tempDisplay = `--.-°C`;
+                let tempColor = `text-slate-400`;
+                let borderAccent = `border-slate-200/80`;
+                let lastTime = `لم يسجل اليوم`;
+
+                if (latest) {
+                    const evalRes = evaluateTemperature(latest.temp, unit);
+                    statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold border ${evalRes.badgeClass}">${evalRes.label}</span>`;
+                    tempDisplay = `${latest.temp > 0 ? '+' : ''}${latest.temp}°C`;
+                    if (evalRes.status === 'safe') {
+                        tempColor = 'text-emerald-600';
+                        borderAccent = 'border-emerald-200 hover:border-emerald-400';
+                    } else if (evalRes.status === 'warning') {
+                        tempColor = 'text-amber-600';
+                        borderAccent = 'border-amber-300 hover:border-amber-500';
+                    } else {
+                        tempColor = 'text-red-600';
+                        borderAccent = 'border-red-300 hover:border-red-500 ring-2 ring-red-100';
+                    }
+                    const dt = new Date(latest.timestamp);
+                    lastTime = `${dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })} • ${latest.staff}`;
+                }
+
+                const typeBadge = unit.type === 'freezer'
+                    ? `<span class="inline-flex items-center gap-1 text-xs font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md"><i data-lucide="snowflake" class="w-3 h-3"></i> مجمد</span>`
+                    : `<span class="inline-flex items-center gap-1 text-xs font-bold text-sky-700 bg-sky-50 px-2 py-0.5 rounded-md"><i data-lucide="thermometer" class="w-3 h-3"></i> براد تبريد</span>`;
+
+                const rangeText = unit.type === 'freezer' ? `≤ ${unit.maxTemp}°C` : `${unit.minTemp}°C إلى ${unit.maxTemp}°C`;
+
+                return `
+                    <div onclick="openLogModal('${unit.id}', true)" class="cursor-pointer bg-white rounded-2xl p-5 border-2 ${borderAccent} shadow-sm hover:shadow-md transition-all group flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-start justify-between gap-2 mb-3">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-extrabold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">${unit.id}</span>
+                                    ${typeBadge}
+                                </div>
+                                ${statusBadge}
+                            </div>
+                            <h3 class="font-extrabold text-slate-900 text-base group-hover:text-emerald-700 transition">${unit.name}</h3>
+                            <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                                <i data-lucide="chef-hat" class="w-3 h-3 text-emerald-600"></i>
+                                <strong class="text-slate-700">${unit.kitchen}</strong> — ${unit.location}
+                            </p>
+                        </div>
+
+                        <!-- 3 Daily Readings Progress -->
+                        <div class="mt-4 flex items-center gap-1.5">
+                            ${slotsHTML}
+                        </div>
+
+                        <div class="mt-4 pt-3.5 border-t border-slate-100 flex items-end justify-between">
+                            <div>
+                                <p class="text-[11px] font-bold text-slate-400">آخر قراءة مسجلة</p>
+                                <p class="text-2xl font-extrabold ${tempColor} mt-0.5" dir="ltr">${tempDisplay}</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">${lastTime}</p>
+                            </div>
+                            <div class="text-left">
+                                <span class="block text-[11px] text-slate-400">المثالية: <strong class="text-emerald-700" dir="ltr">${unit.idealTemp}°C</strong></span>
+                                <span class="block text-[11px] text-slate-400 mb-1.5">النطاق: <strong class="text-slate-600" dir="ltr">${rangeText}</strong></span>
+                                <span class="inline-flex items-center gap-1.5 bg-slate-900 group-hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition">
+                                    <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+                                    <span>تسجيل حرارة</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderLogsTable() {
+            const tbody = document.getElementById('logs-table-body');
+            const emptyMsg = document.getElementById('empty-logs-msg');
+            if (!tbody) return;
+
+            const searchVal = (document.getElementById('filter-search')?.value || '').trim().toLowerCase();
+            const unitFilter = document.getElementById('filter-unit')?.value || 'all';
+            const shiftFilter = document.getElementById('filter-shift')?.value || 'all';
+            const statusFilter = document.getElementById('filter-status')?.value || 'all';
+
+            const filtered = logs
+                .slice()
+                .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))
+                .filter(log => {
+                    const unit = units.find(u => u.id === log.unitId) || { name: 'وحدة محذوفة', kitchen: '', id: log.unitId };
+                    const evalRes = evaluateTemperature(log.temp, unit);
+                    const currentStatus = log.status || evalRes.status;
+
+                    if (unitFilter !== 'all' && log.unitId !== unitFilter) return false;
+                    if (shiftFilter !== 'all' && log.shift !== shiftFilter) return false;
+                    if (statusFilter !== 'all' && currentStatus !== statusFilter) return false;
+                    if (searchVal) {
+                        const haystack = `${unit.name} ${unit.id} ${unit.kitchen} ${log.staff} ${log.notes || ''} ${log.correctiveAction || ''}`.toLowerCase();
+                        if (!haystack.includes(searchVal)) return false;
+                    }
+                    return true;
+                });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                emptyMsg.classList.remove('hidden');
+                return;
+            }
+
+            emptyMsg.classList.add('hidden');
+            tbody.innerHTML = filtered.map(log => {
+                const unit = units.find(u => u.id === log.unitId) || { name: 'وحدة غير معروفة', kitchen: '-', type: 'chiller', minTemp: 0, maxTemp: 4 };
+                const evalRes = evaluateTemperature(log.temp, unit);
+                const dt = new Date(log.timestamp);
+                const dateStr = isNaN(dt) ? log.timestamp : dt.toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                const timeStr = isNaN(dt) ? '' : dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                const tempColor = evalRes.status === 'safe' ? 'text-emerald-700' : (evalRes.status === 'warning' ? 'text-amber-700' : 'text-red-700');
+
+                return `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            <div class="font-bold text-slate-800 text-xs">${dateStr}</div>
+                            <div class="text-[11px] text-slate-500">${timeStr}</div>
+                        </td>
+                        <td class="py-3.5 px-4">
+                            <div class="font-extrabold text-slate-900 text-xs sm:text-sm">${unit.name}</div>
+                            <div class="text-[11px] text-slate-500">${log.unitId} • ${unit.kitchen}</div>
+                        </td>
+                        <td class="py-3.5 px-4 text-xs font-bold text-slate-700">${log.shift}</td>
+                        <td class="py-3.5 px-4 font-extrabold text-base ${tempColor}" dir="ltr">
+                            ${log.temp > 0 ? '+' : ''}${log.temp}°C
+                        </td>
+                        <td class="py-3.5 px-4 whitespace-nowrap">
+                            <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${evalRes.badgeClass}">${evalRes.label}</span>
+                        </td>
+                        <td class="py-3.5 px-4 text-xs text-slate-600 max-w-xs">
+                            ${log.correctiveAction ? `<div class="font-bold text-red-700 mb-0.5">${log.correctiveAction}</div>` : ''}
+                            ${log.notes ? `<div class="text-slate-500">${log.notes}</div>` : (!log.correctiveAction ? '<span class="text-slate-300">—</span>' : '')}
+                        </td>
+                        <td class="py-3.5 px-4 text-xs font-bold text-slate-800 whitespace-nowrap">${log.staff}</td>
+                        <td class="py-3.5 px-4 text-center">
+                            <button onclick="deleteLog('${log.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف القراءة">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            safeLucideIcons();
+        }
+
+        function getUnitQRPayload(unit, latest, mode) {
+            const baseUrl = window.location.href.split('?')[0];
+            if (mode === 'scan_link') {
+                return `${baseUrl}?unit=${encodeURIComponent(unit.id)}`;
+            }
+            const dt = latest ? new Date(latest.timestamp) : null;
+            const dateStr = dt ? dt.toISOString().split('T')[0] : 'N/A';
+            const timeStr = dt ? dt.toTimeString().slice(0, 5) : '--:--';
+            const lastTempStr = latest ? `${latest.temp}C` : 'N/A';
+            const readerStr = latest ? latest.staff : '-';
+
+            return [
+                `HACCP | ${unit.name}`,
+                `ID:${unit.id} | ${unit.kitchen}`,
+                `Ideal:${unit.idealTemp}C | Read:${lastTempStr}`,
+                `By:${readerStr}`,
+                `Date:${dateStr} ${timeStr}`
+            ].join('\n');
+        }
+
+        function safeRenderQR(element, text, size = 150, fallbackText = '') {
+            if (!element || typeof QRCode === 'undefined') return;
+            element.innerHTML = '';
+            try {
+                new QRCode(element, {
+                    text,
+                    width: size,
+                    height: size,
+                    colorDark: "#0f172a",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.L
+                });
+            } catch (err) {
+                console.warn('QR payload too long for UTF-8, using compact fallback:', err);
+                element.innerHTML = '';
+                try {
+                    new QRCode(element, {
+                        text: fallbackText || text.slice(0, 80),
+                        width: size,
+                        height: size,
+                        colorDark: "#0f172a",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.L
+                    });
+                } catch (e2) {
+                    console.error('QR generation failed:', e2);
+                }
+            }
+        }
+
+        function renderQRCards() {
+            const container = document.getElementById('qr-cards-grid');
+            const mode = document.getElementById('qr-mode-select')?.value || 'full_data';
+
+            container.innerHTML = units.map(unit => {
+                const unitLogs = logs.filter(l => l.unitId === unit.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+                const latest = unitLogs[0];
+                const dt = latest ? new Date(latest.timestamp) : null;
+                const dateStr = dt ? dt.toLocaleDateString('ar-EG', { year: 'numeric', month: '2-digit', day: '2-digit' }) : '—';
+                const timeStr = dt ? dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '—';
+                const tempStr = latest ? `${latest.temp > 0 ? '+' : ''}${latest.temp}°C` : 'لم تُقرأ بعد';
+                const readerStr = latest ? latest.staff : '—';
+
+                return `
+                    <div class="bg-white rounded-2xl border-2 border-slate-200 p-5 flex flex-col items-center text-center shadow-sm">
+                        <div class="w-full flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
+                            <span class="text-xs font-extrabold bg-slate-900 text-white px-2.5 py-1 rounded-lg">${unit.id}</span>
+                            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">المثالية: <span dir="ltr">${unit.idealTemp}°C</span></span>
+                        </div>
+
+                        <h3 class="font-extrabold text-base text-slate-900">${unit.name}</h3>
+                        <p class="text-xs text-slate-500 mb-3">${unit.kitchen} — ${unit.location}</p>
+
+                        <!-- QR Code Canvas Wrapper -->
+                        <div onclick="openLogModal('${unit.id}', true)" title="اضغط لمحاكاة مسح الكود" class="cursor-pointer p-3 bg-white border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl transition">
+                            <div id="qr-target-${unit.id}" class="flex items-center justify-center"></div>
+                        </div>
+
+                        <!-- Embedded Details Summary Box -->
+                        <div class="w-full mt-4 bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-right text-xs space-y-1.5">
+                            <div class="flex justify-between">
+                                <span class="text-slate-500 font-semibold">درجة حرارة القراءة:</span>
+                                <span class="font-extrabold text-slate-900" dir="ltr">${tempStr}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500 font-semibold">اسم القارئ:</span>
+                                <span class="font-bold text-slate-800">${readerStr}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500 font-semibold">تاريخ وساعة القراءة:</span>
+                                <span class="font-bold text-slate-700">${dateStr} | ${timeStr}</span>
+                            </div>
+                        </div>
+
+                        <button onclick="openLogModal('${unit.id}', true)" class="w-full mt-3 py-2.5 px-4 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold text-xs sm:text-sm rounded-xl border border-emerald-200 hover:border-emerald-600 transition flex items-center justify-center gap-2">
+                            <i data-lucide="scan" class="w-4 h-4"></i>
+                            <span>تحديث القراءة وتوليد QR جديد</span>
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            units.forEach(unit => {
+                const target = document.getElementById(`qr-target-${unit.id}`);
+                const unitLogs = logs.filter(l => l.unitId === unit.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+                const latest = unitLogs[0];
+                const payload = getUnitQRPayload(unit, latest, mode);
+                const fallback = getUnitQRPayload(unit, latest, 'scan_link');
+                safeRenderQR(target, payload, 150, fallback);
+            });
+            safeLucideIcons();
+        }
+
+        function renderScheduleSettings() {
+            const container = document.getElementById('schedule-inputs-grid');
+            if (!container) return;
+            container.innerHTML = scheduleTimes.map((slot, idx) => `
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
+                    <label class="block text-xs font-extrabold text-slate-700">اسم الفترة رقم ${idx + 1}</label>
+                    <input type="text" id="sched-name-${idx}" value="${slot.name}" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <label class="block text-xs font-extrabold text-slate-700 pt-1">الساعة المطلوبة للفحص</label>
+                    <input type="time" id="sched-time-${idx}" value="${slot.time}" dir="ltr" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-extrabold text-slate-900 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                </div>
+            `).join('');
+        }
+
+        function saveScheduleSettings() {
+            scheduleTimes = scheduleTimes.map((slot, idx) => ({
+                id: slot.id,
+                name: document.getElementById(`sched-name-${idx}`).value.trim() || slot.name,
+                time: document.getElementById(`sched-time-${idx}`).value || slot.time
+            }));
+            saveScheduleToCloud(scheduleTimes);
+            refreshAllViews();
+            showToast('تم حفظ ومزامنة أوقات القراءات الثلاث اليومية بنجاح', 'success');
+        }
+
+        function renderManagerDashboard() {
+            document.getElementById('mgr-name').value = managerConfig.name || '';
+            document.getElementById('mgr-phone').value = managerConfig.phone || '';
+            document.getElementById('mgr-diff-threshold').value = managerConfig.maxDiffThreshold ?? 3.0;
+            document.getElementById('mgr-sound-toggle').checked = !!managerConfig.soundEnabled;
+
+            const datePicker = document.getElementById('manager-date-picker');
+            if (!datePicker.value) {
+                datePicker.value = new Date().toISOString().split('T')[0];
+            }
+            const selectedDate = datePicker.value;
+
+            const kitchens = [...new Set(units.map(u => u.kitchen))];
+            const pillsContainer = document.getElementById('kitchen-filter-pills');
+            pillsContainer.innerHTML = `
+                <button onclick="setKitchenFilter('all')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${activeKitchenFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                    جميع المطابخ (${kitchens.length})
+                </button>
+                ${kitchens.map(k => `
+                    <button onclick="setKitchenFilter('${k.replace(/'/g, "\\'")}')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${activeKitchenFilter === k ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                        ${k}
+                    </button>
+                `).join('')}
+            `;
+
+            const targetKitchens = activeKitchenFilter === 'all' ? kitchens : kitchens.filter(k => k === activeKitchenFilter);
+            const container = document.getElementById('manager-kitchens-container');
+
+            container.innerHTML = targetKitchens.map(kitchen => {
+                const kUnits = units.filter(u => u.kitchen === kitchen);
+                const totalRequired = kUnits.length * scheduleTimes.length;
+                let completedCount = 0;
+                let issuesCount = 0;
+
+                const rowsHTML = kUnits.map(unit => {
+                    const cellsHTML = scheduleTimes.map(slot => {
+                        const slotLogs = logs
+                            .filter(l => l.unitId === unit.id && (l.timestamp || '').startsWith(selectedDate) && (l.shiftId === slot.id || l.shift === slot.name))
+                            .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
+                        const found = slotLogs[0];
+
+                        if (found) {
+                            completedCount++;
+                            if (found.status !== 'safe') issuesCount++;
+                            const t = new Date(found.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+                            const badgeStyle = found.status === 'safe'
+                                ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                                : (found.status === 'warning' ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-red-50 border-red-300 text-red-800');
+                            return `
+                                <td class="py-3 px-3">
+                                    <div class="p-2 rounded-xl border ${badgeStyle} text-xs">
+                                        <div class="flex items-center justify-between font-extrabold">
+                                            <span dir="ltr">${found.temp > 0 ? '+' : ''}${found.temp}°C</span>
+                                            <span>${found.status === 'safe' ? '✓' : '⚠️'}</span>
+                                        </div>
+                                        <div class="text-[10px] opacity-80 mt-0.5 truncate">${found.staff} (${t})</div>
+                                    </div>
+                                </td>
+                            `;
+                        } else {
+                            return `
+                                <td class="py-3 px-3">
+                                    <button onclick="openLogModal('${unit.id}', false, '${slot.id}')" class="w-full p-2 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50 hover:bg-emerald-50/50 text-slate-400 hover:text-emerald-700 text-xs font-bold transition text-center">
+                                        <div>لم تُقرأ بعد</div>
+                                        <div class="text-[10px]">اضغط للتسجيل</div>
+                                    </button>
+                                </td>
+                            `;
+                        }
+                    }).join('');
+
+                    return `
+                        <tr class="border-t border-slate-100 hover:bg-slate-50/60">
+                            <td class="py-3 px-4">
+                                <div class="font-extrabold text-slate-900 text-xs sm:text-sm">${unit.name}</div>
+                                <div class="text-[11px] text-slate-500">${unit.id} • المثالية: <span dir="ltr" class="font-bold text-emerald-700">${unit.idealTemp}°C</span></div>
+                            </td>
+                            ${cellsHTML}
+                        </tr>
+                    `;
+                }).join('');
+
+                const pct = totalRequired > 0 ? Math.round((completedCount / totalRequired) * 100) : 0;
+                const progressColor = pct === 100 ? 'bg-emerald-500' : (pct >= 50 ? 'bg-amber-500' : 'bg-red-500');
+
+                return `
+                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+                                    <i data-lucide="chef-hat" class="w-5 h-5"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-extrabold text-base text-slate-900">${kitchen}</h3>
+                                    <p class="text-xs text-slate-500">${kUnits.length} وحدات تبريد • تم إنجاز ${completedCount} من ${totalRequired} قراءات مطلوبة</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                ${issuesCount > 0 ? `<span class="px-2.5 py-1 rounded-full bg-red-100 text-red-700 text-xs font-extrabold">${issuesCount} مخالفة حرارة</span>` : ''}
+                                <div class="w-32">
+                                    <div class="flex justify-between text-[11px] font-extrabold mb-1">
+                                        <span>نسبة الإنجاز</span>
+                                        <span>${pct}%</span>
+                                    </div>
+                                    <div class="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
+                                        <div class="h-full ${progressColor} transition-all" style="width:${pct}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-right border-collapse">
+                                <thead>
+                                    <tr class="bg-white text-slate-500 text-xs font-extrabold border-b border-slate-200">
+                                        <th class="py-3 px-4 w-1/4">البراد / الفريزر</th>
+                                        ${scheduleTimes.map(s => `<th class="py-3 px-3 text-center">${s.name}<br><span class="text-[11px] text-emerald-600 font-bold" dir="ltr">الساعة ${s.time}</span></th>`).join('')}
+                                    </tr>
+                                </thead>
+                                <tbody>${rowsHTML}</tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            safeLucideIcons();
+        }
+
+        function setKitchenFilter(kitchenName) {
+            activeKitchenFilter = kitchenName;
+            renderManagerDashboard();
+        }
+
+        function saveManagerSettings() {
+            managerConfig = {
+                name: document.getElementById('mgr-name').value.trim() || 'مدير الجودة والعمليات',
+                phone: document.getElementById('mgr-phone').value.trim(),
+                maxDiffThreshold: parseFloat(document.getElementById('mgr-diff-threshold').value) || 3.0,
+                soundEnabled: document.getElementById('mgr-sound-toggle').checked
+            };
+            saveManagerConfigToCloud(managerConfig);
+            showToast('تم حفظ ومزامنة إعدادات المدير والتنبيهات التلقائية', 'success');
+        }
+
+        function renderManageUnits() {
+            const container = document.getElementById('manage-units-list');
+            container.innerHTML = units.map(unit => {
+                const rangeText = unit.type === 'freezer' ? `≤ ${unit.maxTemp}°C` : `${unit.minTemp}°C إلى ${unit.maxTemp}°C`;
+                return `
+                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-4">
+                        <div class="flex items-start gap-3">
+                            <div class="w-11 h-11 rounded-xl ${unit.type === 'freezer' ? 'bg-indigo-50 text-indigo-600' : 'bg-sky-50 text-sky-600'} flex items-center justify-center shrink-0 mt-0.5">
+                                <i data-lucide="${unit.type === 'freezer' ? 'snowflake' : 'thermometer'}" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-extrabold text-slate-400">${unit.id}</span>
+                                    <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">${unit.name}</h3>
+                                </div>
+                                <p class="text-xs text-slate-500 mt-0.5"><strong class="text-slate-700">${unit.kitchen}</strong> — ${unit.location}</p>
+                                <div class="mt-2 flex flex-wrap items-center gap-2 text-xs font-bold">
+                                    <span class="bg-emerald-50 text-emerald-700 px-2.5 py-1 rounded-lg">المثالية: <span dir="ltr">${unit.idealTemp}°C</span></span>
+                                    <span class="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg">النطاق الآمن: <span dir="ltr">${rangeText}</span></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <button onclick="openUnitModal('${unit.id}')" class="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition" title="تعديل">
+                                <i data-lucide="edit-3" class="w-4 h-4"></i>
+                            </button>
+                            <button onclick="deleteUnit('${unit.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition" title="حذف">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            safeLucideIcons();
+        }
+
+        // ==========================================
+        // 4. TEMPERATURE LOG MODAL LOGIC
+        // ==========================================
+        function getAutoShiftId() {
+            const now = new Date();
+            const curMins = now.getHours() * 60 + now.getMinutes();
+            let closest = scheduleTimes[0];
+            let minDiff = Infinity;
+            scheduleTimes.forEach(s => {
+                const [h, m] = s.time.split(':').map(Number);
+                const diff = Math.abs(curMins - (h * 60 + m));
+                if (diff < minDiff) {
+                    minDiff = diff;
+                    closest = s;
+                }
+            });
+            return closest ? closest.id : 'slot1';
+        }
+
+        function getLocalDateTimeISO() {
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            return now.toISOString().slice(0, 16);
+        }
+
+        function openLogModal(preselectedUnitId = null, isFromQR = false, preselectedSlotId = null) {
+            const select = document.getElementById('log-unit-select');
+            select.innerHTML = units.map(u => `<option value="${u.id}">${u.name} (${u.id}) — ${u.kitchen}</option>`).join('');
+
+            if (preselectedUnitId && units.some(u => u.id === preselectedUnitId)) {
+                select.value = preselectedUnitId;
+            }
+
+            const shiftSelect = document.getElementById('log-shift');
+            shiftSelect.innerHTML = scheduleTimes.map(s => `<option value="${s.id}">${s.name} — الساعة ${s.time}</option>`).join('');
+            shiftSelect.value = preselectedSlotId || getAutoShiftId();
+
+            const qrBadge = document.getElementById('modal-qr-badge');
+            if (isFromQR) {
+                qrBadge.classList.remove('hidden');
+            } else {
+                qrBadge.classList.add('hidden');
+            }
+
+            document.getElementById('log-datetime').value = getLocalDateTimeISO();
+            document.getElementById('log-staff-name').value = lastStaffName;
+            document.getElementById('log-notes').value = '';
+            document.getElementById('corrective-preset').value = '';
+            document.getElementById('log-corrective-text').value = '';
+            document.getElementById('corrective-action-container').classList.add('hidden');
+            document.getElementById('live-haccp-feedback').classList.add('hidden');
+
+            onLogUnitChange(true);
+            document.getElementById('log-modal').classList.remove('hidden');
+            safeLucideIcons();
+        }
+
+        function closeLogModal() {
+            document.getElementById('log-modal').classList.add('hidden');
+        }
+
+        function onLogUnitChange(setSuggestedTemp = false) {
+            const unitId = document.getElementById('log-unit-select').value;
+            const unit = units.find(u => u.id === unitId);
+            if (!unit) return;
+
+            const hint = document.getElementById('unit-limit-hint');
+            const rangeStr = unit.type === 'freezer' ? `≤ ${unit.maxTemp}°C` : `${unit.minTemp}°C إلى ${unit.maxTemp}°C`;
+            hint.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5 text-emerald-600"></i> <span>الحد الآمن حسب HACCP: <strong dir="ltr" class="text-slate-700">${rangeStr}</strong></span>`;
+
+            if (setSuggestedTemp) {
+                const defaultStart = unit.type === 'freezer' ? -19.0 : 2.5;
+                document.getElementById('log-temp-input').value = defaultStart;
+            }
+            evaluateLiveTemp();
+            safeLucideIcons();
+        }
+
+        function adjustTemp(delta) {
+            const input = document.getElementById('log-temp-input');
+            let current = parseFloat(input.value);
+            if (isNaN(current)) current = 0;
+            input.value = (Math.round((current + delta) * 10) / 10).toFixed(1);
+            evaluateLiveTemp();
+        }
+
+        function evaluateLiveTemp() {
+            const unitId = document.getElementById('log-unit-select').value;
+            const unit = units.find(u => u.id === unitId);
+            const tempVal = parseFloat(document.getElementById('log-temp-input').value);
+            const feedbackBox = document.getElementById('live-haccp-feedback');
+            const correctiveBox = document.getElementById('corrective-action-container');
+            const correctiveInput = document.getElementById('log-corrective-text');
+
+            if (!unit || isNaN(tempVal)) {
+                feedbackBox.classList.add('hidden');
+                return;
+            }
+
+            const res = evaluateTemperature(tempVal, unit);
+            feedbackBox.classList.remove('hidden', 'bg-emerald-100', 'text-emerald-800', 'bg-amber-100', 'text-amber-800', 'bg-red-100', 'text-red-800');
+
+            if (res.status === 'safe') {
+                feedbackBox.classList.add('bg-emerald-100', 'text-emerald-800');
+                feedbackBox.innerHTML = `✅ ${res.label}`;
+                correctiveBox.classList.add('hidden');
+                correctiveInput.required = false;
+            } else if (res.status === 'warning') {
+                feedbackBox.classList.add('bg-amber-100', 'text-amber-800');
+                feedbackBox.innerHTML = `⚠️ ${res.label} - يرجى المتابعة`;
+                correctiveBox.classList.remove('hidden');
+                correctiveInput.required = true;
+            } else {
+                feedbackBox.classList.add('bg-red-100', 'text-red-800');
+                feedbackBox.innerHTML = `🚨 ${res.label}`;
+                correctiveBox.classList.remove('hidden');
+                correctiveInput.required = true;
+            }
+        }
+
+        function applyCorrectivePreset() {
+            const preset = document.getElementById('corrective-preset').value;
+            if (preset) {
+                document.getElementById('log-corrective-text').value = preset;
+            }
+        }
+
+        function handleLogSubmit(e) {
+            e.preventDefault();
+            const unitId = document.getElementById('log-unit-select').value;
+            const unit = units.find(u => u.id === unitId);
+            if (!unit) return;
+
+            const shiftId = document.getElementById('log-shift').value;
+            const slotObj = scheduleTimes.find(s => s.id === shiftId) || scheduleTimes[0];
+            const timestamp = document.getElementById('log-datetime').value;
+            const temp = parseFloat(document.getElementById('log-temp-input').value);
+            const staff = document.getElementById('log-staff-name').value.trim();
+            const notes = document.getElementById('log-notes').value.trim();
+            const correctiveAction = document.getElementById('log-corrective-text').value.trim();
+
+            const prevUnitLog = logs
+                .filter(l => l.unitId === unitId)
+                .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))[0];
+
+            const evalRes = evaluateTemperature(temp, unit);
+
+            const newLog = {
+                id: 'LOG-' + Date.now(),
+                unitId,
+                timestamp,
+                shiftId: slotObj.id,
+                shift: slotObj.name,
+                temp,
+                status: evalRes.status,
+                correctiveAction: evalRes.status !== 'safe' ? correctiveAction : '',
+                staff,
+                notes
+            };
+
+            logs.unshift(newLog);
+            lastStaffName = staff;
+            saveLogToCloud(newLog);
+
+            if (evalRes.status === 'danger' || evalRes.status === 'warning') {
+                pushManagerAlert({
+                    type: evalRes.status,
+                    title: `${evalRes.status === 'danger' ? 'خطر حرارة' : 'تحذير حرارة'}: ${unit.name} (${unit.id})`,
+                    message: `سُجلت درجة ${temp}°C (المثالية ${unit.idealTemp}°C) بواسطة ${staff}. الإجراء: ${correctiveAction || 'لم يُذكر'}.`,
+                    kitchen: unit.kitchen,
+                    unitId: unit.id
+                });
+            } else if (prevUnitLog && Math.abs(temp - prevUnitLog.temp) >= (managerConfig.maxDiffThreshold || 3.0)) {
+                const diffVal = (temp - prevUnitLog.temp).toFixed(1);
+                pushManagerAlert({
+                    type: 'diff',
+                    title: `فرق ملحوظ بالحرارة: ${unit.name} (${unit.id})`,
+                    message: `تغيرت الحرارة بمقدار ${diffVal > 0 ? '+' : ''}${diffVal}°C عن القراءة السابقة (${prevUnitLog.temp}°C ← ${temp}°C) بواسطة ${staff}.`,
+                    kitchen: unit.kitchen,
+                    unitId: unit.id
+                });
+            }
+
+            closeLogModal();
+            refreshAllViews();
+            showToast(`تم تسجيل ومزامنة حرارة ${unit.name} (${temp}°C) فوراً`, evalRes.status === 'danger' ? 'warning' : 'success');
+        }
+
+        function deleteLog(logId) {
+            logs = logs.filter(l => l.id !== logId);
+            deleteLogFromCloud(logId);
+            refreshAllViews();
+            showToast('تم حذف القراءة من السجل السحابي', 'info');
+        }
+
+        // ==========================================
+        // 5. UNIT MANAGEMENT (ADD / EDIT / DELETE)
+        // ==========================================
+        function openUnitModal(unitId = null) {
+            const modal = document.getElementById('unit-modal');
+            const title = document.getElementById('unit-modal-title');
+            const kitchensList = [...new Set(units.map(u => u.kitchen))];
+            document.getElementById('kitchens-datalist').innerHTML = kitchensList.map(k => `<option value="${k}">`).join('');
+
+            if (unitId) {
+                const u = units.find(item => item.id === unitId);
+                if (!u) return;
+                title.textContent = `تعديل بيانات: ${u.name}`;
+                document.getElementById('edit-unit-id').value = u.id;
+                document.getElementById('unit-name').value = u.name;
+                document.getElementById('unit-kitchen').value = u.kitchen || 'المطبخ الرئيسي';
+                document.getElementById('unit-location').value = u.location;
+                document.getElementById('unit-type').value = u.type;
+                document.getElementById('unit-min').value = u.minTemp;
+                document.getElementById('unit-ideal').value = u.idealTemp;
+                document.getElementById('unit-max').value = u.maxTemp;
+            } else {
+                title.textContent = 'إضافة براد / مجمد جديد';
+                document.getElementById('edit-unit-id').value = '';
+                document.getElementById('unit-form').reset();
+                setDefaultLimitsByType();
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function closeUnitModal() {
+            document.getElementById('unit-modal').classList.add('hidden');
+        }
+
+        function setDefaultLimitsByType() {
+            const type = document.getElementById('unit-type').value;
+            if (type === 'freezer') {
+                document.getElementById('unit-min').value = -25;
+                document.getElementById('unit-ideal').value = -19;
+                document.getElementById('unit-max').value = -18;
+            } else {
+                document.getElementById('unit-min').value = 0;
+                document.getElementById('unit-ideal').value = 2;
+                document.getElementById('unit-max').value = 4;
+            }
+        }
+
+        function handleUnitSubmit(e) {
+            e.preventDefault();
+            const editId = document.getElementById('edit-unit-id').value;
+            const name = document.getElementById('unit-name').value.trim();
+            const kitchen = document.getElementById('unit-kitchen').value.trim() || 'المطبخ الرئيسي';
+            const location = document.getElementById('unit-location').value.trim();
+            const type = document.getElementById('unit-type').value;
+            const minTemp = parseFloat(document.getElementById('unit-min').value);
+            const idealTemp = parseFloat(document.getElementById('unit-ideal').value);
+            const maxTemp = parseFloat(document.getElementById('unit-max').value);
+
+            if (editId) {
+                const idx = units.findIndex(u => u.id === editId);
+                if (idx !== -1) {
+                    const updatedUnit = { ...units[idx], name, kitchen, location, type, minTemp, idealTemp, maxTemp };
+                    units[idx] = updatedUnit;
+                    saveUnitToCloud(updatedUnit);
+                }
+                showToast('تم تحديث ومزامنة بيانات الوحدة بنجاح', 'success');
+            } else {
+                const prefix = type === 'freezer' ? 'FRZ' : 'FRG';
+                const newId = `${prefix}-${String(Date.now()).slice(-3)}`;
+                const newUnit = { id: newId, name, kitchen, location, type, minTemp, idealTemp, maxTemp };
+                units.push(newUnit);
+                saveUnitToCloud(newUnit);
+                showToast('تمت إضافة الوحدة الجديدة ومزامنتها وتوليد QR لها', 'success');
+            }
+
+            closeUnitModal();
+            refreshAllViews();
+        }
+
+        function deleteUnit(unitId) {
+            if (units.length <= 1) {
+                showToast('يجب الإبقاء على وحدة تبريد واحدة على الأقل', 'warning');
+                return;
+            }
+            units = units.filter(u => u.id !== unitId);
+            deleteUnitFromCloud(unitId);
+            refreshAllViews();
+            showToast('تم حذف الوحدة من جميع الأجهزة', 'info');
+        }
+
+        // ==========================================
+        // 6. EXPORT CSV & PRINT REPORTS / QR STICKERS
+        // ==========================================
+        function exportToCSV() {
+            const headers = ['التاريخ والوقت', 'رمز الوحدة', 'اسم البراد / المجمد', 'النوع', 'الفترة', 'درجة الحرارة (°C)', 'حالة HACCP', 'الإجراء التصحيحي', 'المسؤول', 'ملاحظات'];
+            const rows = logs.map(log => {
+                const unit = units.find(u => u.id === log.unitId) || { name: 'غير معروف', type: 'chiller', minTemp: 0, maxTemp: 4 };
+                const evalRes = evaluateTemperature(log.temp, unit);
+                return [
+                    (log.timestamp || '').replace('T', ' '),
+                    log.unitId,
+                    `"${unit.name}"`,
+                    unit.type === 'freezer' ? 'مجمد' : 'براد تبريد',
+                    log.shift,
+                    log.temp,
+                    `"${evalRes.label}"`,
+                    `"${log.correctiveAction || ''}"`,
+                    `"${log.staff}"`,
+                    `"${log.notes || ''}"`
+                ].join(',');
+            });
+
+            const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `HACCP_Temperature_Log_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            URL.revokeObjectURL(url);
+            showToast('تم تصدير ملف Excel (CSV) بنجاح', 'success');
+        }
+
+        function printHACCPLog() {
+            const printArea = document.getElementById('print-area');
+            const today = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+            const tableRows = logs.slice().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')).map(log => {
+                const unit = units.find(u => u.id === log.unitId) || { name: 'غير معروف', type: 'chiller', minTemp: 0, maxTemp: 4 };
+                const evalRes = evaluateTemperature(log.temp, unit);
+                return `
+                    <tr>
+                        <td style="border:1px solid #cbd5e1; padding:6px;">${(log.timestamp || '').replace('T', ' ')}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px; font-weight:bold;">${unit.name} (${unit.id})</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px;">${log.shift}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px; font-weight:bold; direction:ltr; text-align:center;">${log.temp}°C</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px;">${evalRes.label}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px;">${log.correctiveAction || '-'}</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px;">${log.staff}</td>
+                    </tr>
+                `;
+            }).join('');
+
+            printArea.innerHTML = `
+                <div dir="rtl" style="font-family: 'Cairo', sans-serif; color: #0f172a;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0f172a; padding-bottom:12px; margin-bottom:16px;">
+                        <div>
+                            <h1 style="font-size:20px; font-weight:800; margin:0;">نموذج مراقبة درجات حرارة البرادات والمجمدات (HACCP)</h1>
+                            <p style="font-size:12px; color:#475569; margin:4px 0 0 0;">سجل الرقابة الصحية وسلامة الغذاء - الحدود المعتمدة: التبريد (0°C إلى 4°C) | التجميد (-18°C أو أقل)</p>
+                        </div>
+                        <div style="text-align:left; font-size:12px;">
+                            <div><strong>تاريخ الطباعة:</strong> ${today}</div>
+                            <div><strong>عدد السجلات:</strong> ${logs.length}</div>
+                        </div>
+                    </div>
+                    <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:right;">
+                        <thead>
+                            <tr style="background:#f1f5f9;">
+                                <th style="border:1px solid #cbd5e1; padding:8px;">التاريخ والوقت</th>
+                                <th style="border:1px solid #cbd5e1; padding:8px;">البراد / المجمد</th>
+                                <th style="border:1px solid #cbd5e1; padding:8px;">الفترة</th>
+                                <th style="border:1px solid #cbd5e1; padding:8px;">الحرارة</th>
+                                <th style="border:1px solid #cbd5e1; padding:8px;">التقييم</th>
+                                <th style="border:1px solid #cbd5e1; padding:8px;">الإجراء التصحيحي</th>
+                                <th style="border:1px solid #cbd5e1; padding:8px;">المسؤول</th>
+                            </tr>
+                        </thead>
+                        <tbody>${tableRows}</tbody>
+                    </table>
+                    <div style="margin-top:30px; display:flex; justify-content:space-between; font-size:12px; font-weight:bold;">
+                        <div>توقيع الشيف التنفيذي: ______________________</div>
+                        <div>اعتماد مشرف الجودة وسلامة الغذاء: ______________________</div>
+                    </div>
+                </div>
+            `;
+            printArea.classList.remove('hidden');
+            window.print();
+            printArea.classList.add('hidden');
+        }
+
+        function printQRStickers() {
+            const printArea = document.getElementById('print-area');
+            const mode = document.getElementById('qr-mode-select')?.value || 'full_data';
+
+            printArea.innerHTML = `
+                <div dir="rtl" style="font-family: 'Cairo', sans-serif;">
+                    <h2 style="text-align:center; font-size:18px; font-weight:800; margin-bottom:16px;">ملصقات QR Code لمراقبة درجات حرارة البرادات والمجمدات (HACCP)</h2>
+                    <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
+                        ${units.map(u => {
+                            const latest = logs.filter(l => l.unitId === u.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))[0];
+                            const dt = latest ? new Date(latest.timestamp) : null;
+                            const dateStr = dt ? dt.toLocaleDateString('ar-EG') : '—';
+                            const timeStr = dt ? dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '—';
+                            return `
+                                <div style="border:2px solid #0f172a; border-radius:16px; padding:14px; text-align:center; page-break-inside:avoid;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                        <span style="font-size:11px; font-weight:800; background:#0f172a; color:white; padding:2px 8px; border-radius:6px;">${u.id}</span>
+                                        <span style="font-size:11px; font-weight:800; color:#15803d;">المثالية: <span dir="ltr">${u.idealTemp}°C</span></span>
+                                    </div>
+                                    <h3 style="font-size:15px; font-weight:800; margin:4px 0;">${u.name}</h3>
+                                    <p style="font-size:11px; color:#475569; margin:0 0 8px 0;">${u.kitchen} — ${u.location}</p>
+                                    <div id="print-qr-${u.id}" style="display:flex; justify-content:center; margin:8px 0;"></div>
+                                    <div style="text-align:right; font-size:11px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; margin-top:8px;">
+                                        <div><strong>آخر قراءة:</strong> <span dir="ltr">${latest ? latest.temp + '°C' : 'غير مسجلة'}</span></div>
+                                        <div><strong>اسم القارئ:</strong> ${latest ? latest.staff : '—'}</div>
+                                        <div><strong>التاريخ والوقت:</strong> ${dateStr} | ${timeStr}</div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+
+            units.forEach(u => {
+                const el = document.getElementById(`print-qr-${u.id}`);
+                const latest = logs.filter(l => l.unitId === u.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))[0];
+                const payload = getUnitQRPayload(u, latest, mode);
+                const fallback = getUnitQRPayload(u, latest, 'scan_link');
+                safeRenderQR(el, payload, 135, fallback);
+            });
+
+            printArea.classList.remove('hidden');
+            setTimeout(() => {
+                window.print();
+                printArea.classList.add('hidden');
+            }, 300);
+        }
+
+        // ==========================================
+        // 7. TOAST NOTIFICATIONS & INITIALIZATION
+        // ==========================================
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const bgClass = type === 'success' ? 'bg-slate-900 border-emerald-500 text-white' :
+                            type === 'warning' ? 'bg-red-900 border-red-400 text-white' : 'bg-slate-800 border-slate-600 text-white';
+
+            toast.className = `pointer-events-auto border-r-4 ${bgClass} px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm font-bold flex items-center justify-between gap-3 transition-all duration-300`;
+            toast.innerHTML = `<span>${message}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        function populateFilterDropdowns() {
+            const filterUnit = document.getElementById('filter-unit');
+            if (filterUnit) {
+                const currentVal = filterUnit.value;
+                filterUnit.innerHTML = `<option value="all">جميع البرادات والمجمدات</option>` +
+                    units.map(u => `<option value="${u.id}">${u.name} (${u.id})</option>`).join('');
+                filterUnit.value = currentVal || 'all';
+            }
+
+            const filterShift = document.getElementById('filter-shift');
+            if (filterShift) {
+                const curShift = filterShift.value;
+                filterShift.innerHTML = `<option value="all">جميع الفترات</option>` +
+                    scheduleTimes.map(s => `<option value="${s.name}">${s.name} (${s.time})</option>`).join('');
+                filterShift.value = curShift || 'all';
+            }
+        }
+
+        function refreshAllViews() {
+            renderKPIs();
+            renderUnitsStatusGrid();
+            populateFilterDropdowns();
+            renderLogsTable();
+            renderScheduleSettings();
+            renderManageUnits();
+            renderManagerDashboard();
+            updateNotificationBadges();
+            if (!document.getElementById('view-qr').classList.contains('hidden')) {
+                renderQRCards();
+            }
+            safeLucideIcons();
+        }
+
+        // Expose all handlers to global window scope for HTML onclick/onchange events
+        Object.assign(window, {
+            openNotificationsModal,
+            closeNotificationsModal,
+            markAlertRead,
+            markAllAlertsRead,
+            clearResolvedAlerts,
+            openLogModal,
+            closeLogModal,
+            handleLogSubmit,
+            onLogUnitChange,
+            adjustTemp,
+            evaluateLiveTemp,
+            applyCorrectivePreset,
+            deleteLog,
+            switchTab,
+            renderLogsTable,
+            renderQRCards,
+            exportToCSV,
+            printHACCPLog,
+            printQRStickers,
+            saveScheduleSettings,
+            openUnitModal,
+            closeUnitModal,
+            setDefaultLimitsByType,
+            handleUnitSubmit,
+            deleteUnit,
+            runMissedReadingsCheck,
+            saveManagerSettings,
+            renderManagerDashboard,
+            setKitchenFilter
+        });
+
+        function bootApp() {
+            const dateDisplay = document.getElementById('current-date-display');
+            if (dateDisplay) {
+                dateDisplay.textContent = new Date().toLocaleDateString('ar-EG', {
+                    weekday: 'long', year: 'numeric', month: 'short', day: 'numeric'
+                });
+            }
+
+            // Render initial UI immediately, then attach cloud sync
+            refreshAllViews();
+            initCloudSync();
+
+            // Check if opened via QR Code URL parameter (?unit=FRG-01)
+            const urlParams = new URLSearchParams(window.location.search);
+            const scannedUnitId = urlParams.get('unit');
+            if (scannedUnitId) {
+                openLogModal(scannedUnitId, true);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            window.addEventListener('DOMContentLoaded', bootApp);
+        } else {
+            bootApp();
+        }
+    </script>
+</body>
+</html>
+```
