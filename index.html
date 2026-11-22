@@ -4,13 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام HACCP | مراقبة درجات حرارة البرادات والمجمدات</title>
+    <title>فندق جوليا دومنا | نظام HACCP لمراقبة البرادات والمجمدات</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts: Cairo for clean Arabic typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <!-- QRCode.js Library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Lucide Icons -->
@@ -24,13 +24,24 @@
                         sans: ['Cairo', 'sans-serif'],
                     },
                     colors: {
-                        haccp: {
-                            50: '#f0fdf4',
-                            100: '#dcfce7',
-                            600: '#16a34a',
-                            700: '#15803d',
-                            800: '#166534',
-                            900: '#14532d',
+                        jdh: {
+                            50: '#fdf2f4',
+                            100: '#fce7eb',
+                            200: '#f8cfd8',
+                            300: '#f2a7b8',
+                            400: '#e77490',
+                            500: '#d4456a',
+                            600: '#b52850',
+                            700: '#8d193b',
+                            800: '#6e112c',
+                            900: '#530b20',
+                            950: '#350513',
+                        },
+                        gold: {
+                            300: '#f3d57a',
+                            400: '#e5be53',
+                            500: '#d4af37',
+                            600: '#b48d1e',
                         }
                     }
                 }
@@ -41,7 +52,7 @@
     <style>
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: #f8fafc;
+            background-color: #faf7f8;
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
@@ -49,11 +60,14 @@
             height: 6px;
         }
         ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+            background: #f5eff1;
         }
         ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
+            background: #d8b4be;
             border-radius: 9999px;
+        }
+        .jdh-header-gradient {
+            background: linear-gradient(135deg, #430819 0%, #6e112c 55%, #530b20 100%);
         }
         /* Print Styles for Health Inspection & QR Stickers */
         @media print {
@@ -82,43 +96,53 @@
     <!-- Toast Notification Container -->
     <div id="toast-container" class="fixed top-4 left-4 right-4 md:left-auto md:right-6 md:w-96 z-50 flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-slate-900 text-white shadow-lg sticky top-0 z-30 no-print">
+    <!-- Top Navigation Bar (Royal Burgundy & Gold Theme - Julia Domna Hotel) -->
+    <header class="jdh-header-gradient text-white shadow-xl border-b-2 border-gold-500/60 sticky top-0 z-30 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
+            <div class="flex items-center justify-between h-16 sm:h-[72px]">
                 <!-- Brand -->
                 <div class="flex items-center gap-3">
-                    <div class="bg-emerald-500/20 border border-emerald-500/40 p-2 rounded-xl text-emerald-400">
+                    <div class="bg-gold-500/15 border border-gold-400/50 p-2 rounded-xl text-gold-300 shadow-inner">
                         <i data-lucide="thermometer-snowflake" class="w-6 h-6"></i>
                     </div>
                     <div>
-                        <h1 class="font-extrabold text-base sm:text-lg leading-tight tracking-wide">نظام سلامة الغذاء HACCP</h1>
-                        <p class="text-xs text-slate-400 hidden sm:block">سجل مراقبة درجات حرارة البرادات والمجمدات</p>
+                        <div class="flex items-center gap-2">
+                            <h1 class="font-black text-base sm:text-lg leading-tight tracking-wide text-white">فندق جوليا دومنا</h1>
+                            <span class="hidden md:inline-block text-[10px] font-bold tracking-widest uppercase bg-gold-500/20 text-gold-300 border border-gold-400/30 px-2 py-0.5 rounded-full">Julia Domna Hotel</span>
+                        </div>
+                        <p class="text-[11px] sm:text-xs text-jdh-200/90 font-semibold">نظام سلامة الغذاء HACCP • مراقبة البرادات والمجمدات</p>
                     </div>
                 </div>
 
-                <!-- Quick Action Button -->
-                <div class="flex items-center gap-2">
-                    <!-- Manager Notifications Bell -->
-                    <button onclick="openNotificationsModal()" class="relative bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 p-2.5 rounded-xl transition" title="إشعارات المدير التلقائية">
-                        <i data-lucide="bell" class="w-5 h-5"></i>
-                        <span id="notif-badge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-extrabold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-slate-900 animate-pulse">0</span>
+                <!-- Quick Action Buttons -->
+                <div class="flex items-center gap-1.5 sm:gap-2">
+                    <!-- Manager Lock Status Button -->
+                    <button onclick="toggleManagerLock()" id="manager-lock-btn" class="bg-jdh-950/60 hover:bg-jdh-900 border border-gold-500/30 text-jdh-200 px-2.5 py-2 rounded-xl transition flex items-center gap-1.5 text-xs font-bold" title="صلاحية المدير">
+                        <i data-lucide="lock" id="manager-lock-icon" class="w-4 h-4 text-gold-400"></i>
+                        <span id="manager-lock-text" class="hidden sm:inline">وضع الشيف</span>
                     </button>
-                    <button onclick="openLogModal()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition text-white font-bold text-xs sm:text-sm px-3.5 py-2.5 rounded-xl flex items-center gap-2 shadow-md shadow-emerald-900/40">
+
+                    <!-- Manager Notifications Bell -->
+                    <button onclick="openNotificationsModal()" class="relative bg-jdh-950/60 hover:bg-jdh-900 border border-jdh-700/70 text-jdh-100 p-2.5 rounded-xl transition" title="إشعارات المدير التلقائية">
+                        <i data-lucide="bell" class="w-5 h-5"></i>
+                        <span id="notif-badge" class="hidden absolute -top-1.5 -right-1.5 bg-red-600 text-white text-[10px] font-extrabold min-w-[20px] h-5 px-1 rounded-full flex items-center justify-center border-2 border-jdh-900 animate-pulse">0</span>
+                    </button>
+
+                    <button onclick="openLogModal()" class="bg-emerald-600 hover:bg-emerald-500 active:scale-95 transition text-white font-extrabold text-xs sm:text-sm px-3 sm:px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow-md shadow-black/30 border border-emerald-400/30">
                         <i data-lucide="plus-circle" class="w-4 h-4"></i>
-                        <span>تسجيل قراءة حرارة</span>
+                        <span>تسجيل قراءة</span>
                     </button>
                 </div>
             </div>
             <!-- Cloud Sync Status & Session ID Bar -->
-            <div class="border-t border-slate-800 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+            <div class="border-t border-white/10 py-1.5 flex flex-wrap items-center justify-between gap-2 text-[11px]">
                 <div class="flex items-center gap-2">
                     <span id="cloud-status-dot" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                    <span id="cloud-status-text" class="text-slate-300 font-bold">جاري الاتصال بالسحابة للمزامنة اللحظية...</span>
+                    <span id="cloud-status-text" class="text-jdh-100 font-bold">جاري الاتصال بالسحابة للمزامنة اللحظية...</span>
                 </div>
-                <div class="flex items-center gap-1.5 text-slate-400">
-                    <span>معرّف الاتصال:</span>
-                    <code id="session-user-id" class="bg-slate-800 text-emerald-300 px-2 py-0.5 rounded font-mono text-[10px] select-all" dir="ltr">...</code>
+                <div class="flex items-center gap-1.5 text-jdh-200/80">
+                    <span class="hidden sm:inline">معرّف الاتصال:</span>
+                    <code id="session-user-id" class="bg-jdh-950/70 text-gold-300 px-2 py-0.5 rounded font-mono text-[10px] select-all border border-white/10" dir="ltr">...</code>
                 </div>
             </div>
         </div>
@@ -133,45 +157,50 @@
         </section>
 
         <!-- Navigation Tabs -->
-        <div class="flex overflow-x-auto gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-slate-200/80 mb-6">
-            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition bg-slate-900 text-white shadow-sm">
+        <div class="flex overflow-x-auto gap-2 bg-white p-1.5 rounded-2xl shadow-sm border border-jdh-200/70 mb-6">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-btn flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition bg-jdh-800 text-white shadow-sm">
                 <i data-lucide="layout-grid" class="w-4 h-4"></i>
                 <span>حالة البرادات</span>
             </button>
-            <button onclick="switchTab('manager')" id="tab-manager" class="tab-btn flex-1 min-w-[155px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+            <button onclick="switchTab('manager')" id="tab-manager" class="tab-btn flex-1 min-w-[155px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
                 <i data-lucide="shield-alert" class="w-4 h-4"></i>
                 <span>لوحة المدير والمطابخ</span>
             </button>
-            <button onclick="switchTab('logs')" id="tab-logs" class="tab-btn flex-1 min-w-[130px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+            <button onclick="switchTab('logs')" id="tab-logs" class="tab-btn flex-1 min-w-[130px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
                 <i data-lucide="clipboard-list" class="w-4 h-4"></i>
                 <span>سجل القراءات</span>
             </button>
-            <button onclick="switchTab('qr')" id="tab-qr" class="tab-btn flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+            <button onclick="switchTab('qr')" id="tab-qr" class="tab-btn flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
                 <i data-lucide="qr-code" class="w-4 h-4"></i>
                 <span>أكواد QR والملصقات</span>
             </button>
-            <button onclick="switchTab('units')" id="tab-units" class="tab-btn flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-slate-100">
+            <button onclick="switchTab('units')" id="tab-units" class="tab-btn flex-1 min-w-[145px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
                 <i data-lucide="settings-2" class="w-4 h-4"></i>
-                <span>الوحدات والأوقات</span>
+                <span>الوحدات والطاقم</span>
             </button>
         </div>
 
         <!-- TAB 1: Live Units Status & Quick Scan -->
-        <div id="view-dashboard" class="space-y-6">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-blue-50/80 border border-blue-200 rounded-2xl p-4">
+        <div id="view-dashboard" class="space-y-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-jdh-50/90 border border-jdh-200 rounded-2xl p-4">
                 <div class="flex items-start gap-3">
-                    <div class="bg-blue-600 text-white p-2 rounded-xl mt-0.5 shrink-0">
+                    <div class="bg-jdh-800 text-gold-300 p-2.5 rounded-xl mt-0.5 shrink-0 shadow-sm">
                         <i data-lucide="scan-line" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h2 class="font-bold text-blue-950 text-sm sm:text-base">تسجيل سريع عبر مسح QR أو اختيار البراد</h2>
-                        <p class="text-xs sm:text-sm text-blue-800/80 mt-0.5">اضغط على أي براد أدناه لمحاكاة مسح ملصق QR الموجود على بابه وإدخال درجة الحرارة فوراً.</p>
+                        <h2 class="font-extrabold text-jdh-950 text-sm sm:text-base">تسجيل سريع عبر مسح QR أو اختيار البراد</h2>
+                        <p class="text-xs sm:text-sm text-jdh-800/80 mt-0.5">اضغط على أي براد أدناه لتسجيل درجة الحرارة فوراً، أو فلتر حسب مطبخك للوصول السريع.</p>
                     </div>
                 </div>
-                <div class="flex items-center gap-2 text-xs font-bold text-slate-600 bg-white px-3 py-2 rounded-xl border border-blue-100 shrink-0">
-                    <i data-lucide="calendar" class="w-4 h-4 text-blue-600"></i>
+                <div class="flex items-center gap-2 text-xs font-bold text-jdh-900 bg-white px-3.5 py-2 rounded-xl border border-jdh-200 shrink-0 shadow-sm">
+                    <i data-lucide="calendar" class="w-4 h-4 text-jdh-700"></i>
                     <span id="current-date-display"></span>
                 </div>
+            </div>
+
+            <!-- Quick Kitchen Filter Bar on Main Dashboard -->
+            <div class="flex items-center gap-2 flex-wrap bg-white p-3 rounded-2xl border border-jdh-200/70 shadow-sm" id="dashboard-kitchen-pills">
+                <!-- Populated via JS -->
             </div>
 
             <!-- Units Grid -->
@@ -183,19 +212,19 @@
         <!-- TAB 2: Official HACCP Log Table -->
         <div id="view-logs" class="hidden space-y-4">
             <!-- Toolbar & Filters -->
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border border-jdh-200/70 space-y-4">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
                     <div>
-                        <h2 class="font-extrabold text-lg text-slate-900">جدول مراقبة درجات الحرارة اليومي (نموذج التفتيش)</h2>
-                        <p class="text-xs text-slate-500">سجل معتمد لمتابعة الفترات (صباحي / ظهيرة / مسائي) والإجراءات التصحيحية</p>
+                        <h2 class="font-extrabold text-lg text-jdh-950">جدول مراقبة درجات الحرارة اليومي (نموذج التفتيش)</h2>
+                        <p class="text-xs text-slate-500">سجل معتمد لفندق جوليا دومنا لمتابعة الفترات اليومية والإجراءات التصحيحية</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <button onclick="exportToCSV()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 transition">
                             <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
                             <span>تصدير Excel (CSV)</span>
                         </button>
-                        <button onclick="printHACCPLog()" class="bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 transition">
-                            <i data-lucide="printer" class="w-4 h-4"></i>
+                        <button onclick="printHACCPLog()" class="bg-jdh-800 hover:bg-jdh-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 transition shadow-sm">
+                            <i data-lucide="printer" class="w-4 h-4 text-gold-300"></i>
                             <span>طباعة تقرير HACCP</span>
                         </button>
                     </div>
@@ -205,15 +234,15 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute right-3 top-3"></i>
-                        <input type="text" id="filter-search" oninput="renderLogsTable()" placeholder="بحث باسم البراد أو الموظف..." class="w-full pr-9 pl-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <input type="text" id="filter-search" oninput="renderLogsTable()" placeholder="بحث باسم البراد أو الشيف..." class="w-full pr-9 pl-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
                     </div>
-                    <select id="filter-unit" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <select id="filter-unit" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
                         <option value="all">جميع البرادات والمجمدات</option>
                     </select>
-                    <select id="filter-shift" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <select id="filter-shift" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
                         <option value="all">جميع الفترات</option>
                     </select>
-                    <select id="filter-status" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <select id="filter-status" onchange="renderLogsTable()" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
                         <option value="all">جميع الحالات</option>
                         <option value="safe">مطابق (آمن)</option>
                         <option value="warning">تحذير (مراجعة)</option>
@@ -223,11 +252,11 @@
             </div>
 
             <!-- Table Container -->
-            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-jdh-200/70 overflow-hidden">
                 <div class="overflow-x-auto">
                     <table class="w-full text-right border-collapse">
                         <thead>
-                            <tr class="bg-slate-100/80 border-b border-slate-200 text-slate-600 text-xs font-extrabold uppercase">
+                            <tr class="bg-jdh-50 border-b border-jdh-200 text-jdh-900 text-xs font-extrabold uppercase">
                                 <th class="py-3.5 px-4">التاريخ والوقت</th>
                                 <th class="py-3.5 px-4">اسم البراد / الوحدة</th>
                                 <th class="py-3.5 px-4">الفترة</th>
@@ -252,18 +281,18 @@
 
         <!-- TAB 3: QR Codes Generator & Printable Stickers -->
         <div id="view-qr" class="hidden space-y-6">
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-jdh-200/70 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                 <div>
-                    <h2 class="font-extrabold text-lg text-slate-900">ملصقات QR Code الشاملة للبرادات والمجمدات</h2>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-1">يتضمن كل QR: الاسم، الرقم، الحرارة المثالية، آخر قراءة، اسم القارئ، وتاريخ وساعة القراءة.</p>
+                    <h2 class="font-extrabold text-lg text-jdh-950">ملصقات QR Code الرسمية — فندق جوليا دومنا</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">اختر "رابط فتح نموذج التسجيل" لطباعة ملصقات دائمة على أبواب البرادات، أو "بطاقة البيانات الكاملة".</p>
                 </div>
                 <div class="flex flex-wrap items-center gap-2.5">
-                    <select id="qr-mode-select" onchange="renderQRCards()" class="bg-slate-50 border border-slate-300 text-slate-800 font-bold text-xs sm:text-sm px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <select id="qr-mode-select" onchange="renderQRCards()" class="bg-slate-50 border border-slate-300 text-slate-800 font-bold text-xs sm:text-sm px-3 py-2.5 rounded-xl focus:outline-none focus:ring-2 focus:ring-jdh-600">
+                        <option value="scan_link">محتوى QR: رابط فتح نموذج التسجيل (موصى به)</option>
                         <option value="full_data">محتوى QR: بطاقة البيانات الكاملة</option>
-                        <option value="scan_link">محتوى QR: رابط فتح نموذج التسجيل</option>
                     </select>
-                    <button onclick="printQRStickers()" class="bg-slate-900 hover:bg-slate-800 text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 shrink-0 shadow-sm transition">
-                        <i data-lucide="printer" class="w-4 h-4"></i>
+                    <button onclick="printQRStickers()" class="bg-jdh-800 hover:bg-jdh-700 text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 shrink-0 shadow-sm transition">
+                        <i data-lucide="printer" class="w-4 h-4 text-gold-300"></i>
                         <span>طباعة جميع ملصقات QR</span>
                     </button>
                 </div>
@@ -274,22 +303,47 @@
             </div>
         </div>
 
-        <!-- TAB 4: Manage Units & 3 Daily Schedule Times -->
+        <!-- TAB 4: Manage Units, 3 Daily Schedule Times & Staff List -->
         <div id="view-units" class="hidden space-y-6">
+            <!-- Staff / Chefs Management Card -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-jdh-200/70 space-y-4">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-jdh-50 text-jdh-700 flex items-center justify-center shrink-0">
+                            <i data-lucide="users" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h2 class="font-extrabold text-base sm:text-lg text-jdh-950">قائمة الشيفات وطاقم المطبخ (للاختيار السريع)</h2>
+                            <p class="text-xs text-slate-500">أضف أسماء الشيفات هنا ليختار كل شيف اسمه بضغطة زر واحدة عند مسح الـ QR (محمي برمز المدير).</p>
+                        </div>
+                    </div>
+                </div>
+                <form onsubmit="handleAddStaff(event)" class="flex gap-2">
+                    <input type="text" id="new-staff-input" placeholder="اكتب اسم الشيف أو الموظف (مثال: الشيف عمار)" class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-jdh-600">
+                    <button type="submit" class="bg-jdh-800 hover:bg-jdh-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5 transition shrink-0">
+                        <i data-lucide="user-plus" class="w-4 h-4 text-gold-300"></i>
+                        <span>إضافة اسم</span>
+                    </button>
+                </form>
+                <div id="staff-manage-chips" class="flex flex-wrap gap-2 pt-1">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
             <!-- Schedule Configuration Card (3 Daily Readings) -->
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 space-y-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-jdh-200/70 space-y-4">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                             <i data-lucide="clock" class="w-5 h-5"></i>
                         </div>
                         <div>
-                            <h2 class="font-extrabold text-base sm:text-lg text-slate-900">تحديد أوقات القراءات الثلاث اليومية</h2>
+                            <h2 class="font-extrabold text-base sm:text-lg text-jdh-950">تحديد أوقات القراءات الثلاث اليومية</h2>
                             <p class="text-xs text-slate-500">حدد الساعات المطلوبة لفحص البرادات يومياً لتفعيل المتابعة والتنبيهات التلقائية للمدير.</p>
                         </div>
                     </div>
-                    <button onclick="saveScheduleSettings()" class="bg-slate-900 hover:bg-emerald-600 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition shrink-0">
-                        <i data-lucide="save" class="w-4 h-4"></i>
+                    <button onclick="saveScheduleSettings()" class="bg-jdh-800 hover:bg-jdh-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 transition shrink-0">
+                        <i data-lucide="save" class="w-4 h-4 text-gold-300"></i>
                         <span>حفظ أوقات الفحص</span>
                     </button>
                 </div>
@@ -300,10 +354,10 @@
             </div>
 
             <!-- Units Header -->
-            <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div class="bg-white p-5 rounded-2xl shadow-sm border border-jdh-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
-                    <h2 class="font-extrabold text-lg text-slate-900">إعدادات البرادات والمجمدات والمطابخ</h2>
-                    <p class="text-xs sm:text-sm text-slate-500 mt-1">إضافة وحدات تبريد جديدة، تحديد المطبخ التابع لها، والحرارة المثالية والحدود الآمنة.</p>
+                    <h2 class="font-extrabold text-lg text-jdh-950">إعدادات البرادات والمجمدات والمطابخ</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-1">إضافة وحدات تبريد جديدة، تحديد المطبخ التابع لها، والحرارة المثالية والحدود الآمنة (محمي برمز المدير).</p>
                 </div>
                 <button onclick="openUnitModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 shrink-0 shadow-sm transition">
                     <i data-lucide="plus" class="w-4 h-4"></i>
@@ -319,57 +373,65 @@
         <!-- TAB 5: Manager Dashboard & Kitchen Oversight -->
         <div id="view-manager" class="hidden space-y-6">
             <!-- Manager Settings & Auto-Notification Config -->
-            <div class="bg-slate-900 text-white p-5 rounded-2xl shadow-md space-y-4">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div class="jdh-header-gradient text-white p-5 rounded-2xl shadow-lg border border-gold-500/40 space-y-4">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-white/15 pb-4">
                     <div class="flex items-center gap-3">
-                        <div class="w-11 h-11 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center shrink-0">
+                        <div class="w-11 h-11 rounded-xl bg-gold-500/20 border border-gold-400/40 text-gold-300 flex items-center justify-center shrink-0">
                             <i data-lucide="shield-check" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <h2 class="font-extrabold text-lg">لوحة مراقبة المدير — متابعة المطابخ والإشعارات التلقائية</h2>
-                            <p class="text-xs text-slate-400 mt-0.5">فحص التزام كل مطبخ بالقراءات الثلاث اليومية وتلقي تنبيهات فورية عند وجود فروقات أو أعطال.</p>
+                            <h2 class="font-extrabold text-lg">لوحة مراقبة المدير — فندق جوليا دومنا</h2>
+                            <p class="text-xs text-jdh-200 mt-0.5">متابعة التزام المطابخ بالقراءات الثلاث، تحليل منحنى آخر 7 قراءات، وإرسال الملخص اليومي عبر واتساب.</p>
                         </div>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
-                        <button onclick="runMissedReadingsCheck(true)" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition">
-                            <i data-lucide="radar" class="w-4 h-4"></i>
-                            <span>فحص القراءات المتأخرة الآن</span>
+                        <button onclick="sendDailyWhatsAppSummary()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition shadow-md border border-emerald-400/30">
+                            <i data-lucide="send" class="w-4 h-4"></i>
+                            <span>ملخص اليوم واتساب</span>
                         </button>
-                        <button onclick="openNotificationsModal()" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition">
+                        <button onclick="runMissedReadingsCheck(true)" class="bg-gold-500 hover:bg-gold-400 text-jdh-950 font-extrabold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition">
+                            <i data-lucide="radar" class="w-4 h-4"></i>
+                            <span>فحص المتأخرات</span>
+                        </button>
+                        <button onclick="openNotificationsModal()" class="bg-jdh-950/60 hover:bg-jdh-900 border border-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition">
                             <i data-lucide="bell-ring" class="w-4 h-4 text-red-400"></i>
-                            <span>سجل التنبيهات (<span id="manager-alert-count">0</span>)</span>
+                            <span>التنبيهات (<span id="manager-alert-count">0</span>)</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Manager Contact & Deviation Threshold Settings -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+                <!-- Manager Contact, PIN & Deviation Threshold Settings -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-end">
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">اسم المدير المسؤول</label>
-                        <input type="text" id="mgr-name" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <label class="block text-[11px] font-bold text-jdh-200 mb-1">اسم المدير المسؤول</label>
+                        <input type="text" id="mgr-name" class="w-full px-3 py-2 bg-jdh-950/60 border border-white/15 rounded-xl text-xs font-bold text-white focus:outline-none focus:ring-2 focus:ring-gold-400">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">رقم واتساب المدير (للتنبيه السريع)</label>
-                        <input type="text" id="mgr-phone" placeholder="9639xxxxxxxx" dir="ltr" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-white text-left focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <label class="block text-[11px] font-bold text-jdh-200 mb-1">رقم واتساب المدير (مع الرمز)</label>
+                        <input type="text" id="mgr-phone" placeholder="9639xxxxxxxx" dir="ltr" class="w-full px-3 py-2 bg-jdh-950/60 border border-white/15 rounded-xl text-xs font-bold text-white text-left focus:outline-none focus:ring-2 focus:ring-gold-400">
                     </div>
                     <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">تنبيه عند فرق حرارة يتجاوز (°C)</label>
-                        <input type="number" step="0.5" min="0.5" id="mgr-diff-threshold" dir="ltr" class="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-xs font-bold text-white text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <label class="block text-[11px] font-bold text-jdh-200 mb-1">تنبيه عند فرق حرارة (°C)</label>
+                        <input type="number" step="0.5" min="0.5" id="mgr-diff-threshold" dir="ltr" class="w-full px-3 py-2 bg-jdh-950/60 border border-white/15 rounded-xl text-xs font-bold text-white text-center focus:outline-none focus:ring-2 focus:ring-gold-400">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-gold-300 mb-1">رمز قفل المدير (PIN)</label>
+                        <input type="password" id="mgr-pin" placeholder="102030" dir="ltr" class="w-full px-3 py-2 bg-jdh-950/60 border border-gold-400/40 rounded-xl text-xs font-bold text-gold-200 text-center focus:outline-none focus:ring-2 focus:ring-gold-400">
                     </div>
                     <div class="flex items-center gap-2">
-                        <label class="flex items-center gap-2 text-xs font-bold text-slate-300 cursor-pointer bg-slate-800 px-3 py-2 rounded-xl border border-slate-700 flex-1">
-                            <input type="checkbox" id="mgr-sound-toggle" class="rounded accent-emerald-500">
-                            <span>تنبيه صوتي</span>
+                        <label class="flex items-center gap-1.5 text-xs font-bold text-jdh-100 cursor-pointer bg-jdh-950/60 px-2.5 py-2 rounded-xl border border-white/15 flex-1">
+                            <input type="checkbox" id="mgr-sound-toggle" class="rounded accent-gold-500">
+                            <span>صوت</span>
                         </label>
-                        <button onclick="saveManagerSettings()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition shrink-0">
-                            حفظ الإعدادات
+                        <button onclick="saveManagerSettings()" class="bg-gold-500 hover:bg-gold-400 text-jdh-950 font-extrabold text-xs px-3.5 py-2 rounded-xl transition shrink-0">
+                            حفظ
                         </button>
                     </div>
                 </div>
             </div>
 
             <!-- Kitchen Filter Bar -->
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-jdh-200/70 shadow-sm">
                 <div class="flex items-center gap-2 flex-wrap" id="kitchen-filter-pills">
                     <!-- Populated via JS -->
                 </div>
@@ -379,7 +441,7 @@
                 </div>
             </div>
 
-            <!-- Kitchens Compliance Cards & 3-Readings Matrix -->
+            <!-- Kitchens Compliance Cards & 3-Readings Matrix + 7-Reading Trend -->
             <div id="manager-kitchens-container" class="space-y-5">
                 <!-- Populated via JS -->
             </div>
@@ -390,19 +452,19 @@
     <!-- ===================================================================== -->
     <!-- MODAL 1: Temperature Entry Modal (Triggered via QR Scan or Button)    -->
     <!-- ===================================================================== -->
-    <div id="log-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
-        <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200 max-h-[92vh] flex flex-col">
+    <div id="log-modal" class="fixed inset-0 bg-jdh-950/70 backdrop-blur-sm z-40 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+        <div class="bg-white w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
             
             <!-- Modal Header -->
-            <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+            <div class="jdh-header-gradient text-white px-5 py-4 flex items-center justify-between shrink-0 border-b border-gold-500/40">
                 <div class="flex items-center gap-2.5">
-                    <div id="modal-qr-badge" class="hidden bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
+                    <div id="modal-qr-badge" class="hidden bg-gold-500/20 text-gold-300 border border-gold-400/40 px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1">
                         <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
                         <span>مسح QR مباشر</span>
                     </div>
                     <h3 class="font-extrabold text-base sm:text-lg" id="log-modal-title">تسجيل قراءة درجة الحرارة</h3>
                 </div>
-                <button onclick="closeLogModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition">
+                <button onclick="closeLogModal()" class="text-jdh-200 hover:text-white p-1.5 rounded-xl hover:bg-white/10 transition">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -413,7 +475,7 @@
                 <!-- Unit Selection -->
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1.5">البراد / المجمد المستهدف <span class="text-red-500">*</span></label>
-                    <select id="log-unit-select" onchange="onLogUnitChange()" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <select id="log-unit-select" onchange="onLogUnitChange()" required class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-slate-800 text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
                         <!-- Options injected via JS -->
                     </select>
                     <div id="unit-limit-hint" class="mt-1.5 text-xs font-semibold text-slate-500 flex items-center gap-1.5">
@@ -424,29 +486,29 @@
                 <!-- Shift & Timestamp Row -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                        <label class="block text-xs font-extrabold text-slate-700 mb-1.5">فترة الفحص (من الـ 3 قراءات اليومية) <span class="text-red-500">*</span></label>
-                        <select id="log-shift" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <label class="block text-xs font-extrabold text-slate-700 mb-1.5">فترة الفحص (من الـ 3 قراءات) <span class="text-red-500">*</span></label>
+                        <select id="log-shift" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl font-bold text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
                             <!-- Dynamically populated from scheduleTimes -->
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-extrabold text-slate-700 mb-1.5">التاريخ والوقت</label>
-                        <input type="datetime-local" id="log-datetime" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500" dir="ltr">
+                        <input type="datetime-local" id="log-datetime" required class="w-full px-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-jdh-600" dir="ltr">
                     </div>
                 </div>
 
                 <!-- Temperature Input with Quick Stepper -->
-                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-                    <label class="block text-xs font-extrabold text-slate-700 mb-2 text-center">درجة الحرارة المقاسة (°C) <span class="text-red-500">*</span></label>
+                <div class="bg-jdh-50/60 p-4 rounded-2xl border border-jdh-200/80">
+                    <label class="block text-xs font-extrabold text-jdh-950 mb-2 text-center">درجة الحرارة المقاسة (°C) <span class="text-red-500">*</span></label>
                     <div class="flex items-center justify-center gap-3">
-                        <button type="button" onclick="adjustTemp(-0.5)" class="w-12 h-12 rounded-2xl bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 flex items-center justify-center text-slate-700 font-extrabold text-xl shadow-sm transition">
+                        <button type="button" onclick="adjustTemp(-0.5)" class="w-12 h-12 rounded-2xl bg-white border border-jdh-300 hover:bg-jdh-50 active:scale-95 flex items-center justify-center text-jdh-900 font-extrabold text-xl shadow-sm transition">
                             -
                         </button>
                         <div class="relative w-36">
-                            <input type="number" step="0.1" id="log-temp-input" oninput="evaluateLiveTemp()" required placeholder="0.0" class="w-full text-center text-3xl font-extrabold py-2.5 px-3 bg-white border-2 border-slate-300 rounded-2xl focus:outline-none focus:border-emerald-500" dir="ltr">
+                            <input type="number" step="0.1" id="log-temp-input" oninput="evaluateLiveTemp()" required placeholder="0.0" class="w-full text-center text-3xl font-extrabold py-2.5 px-3 bg-white border-2 border-jdh-300 rounded-2xl focus:outline-none focus:border-jdh-700" dir="ltr">
                             <span class="absolute left-3 top-3.5 text-slate-400 font-bold text-sm">°C</span>
                         </div>
-                        <button type="button" onclick="adjustTemp(0.5)" class="w-12 h-12 rounded-2xl bg-white border border-slate-300 hover:bg-slate-100 active:scale-95 flex items-center justify-center text-slate-700 font-extrabold text-xl shadow-sm transition">
+                        <button type="button" onclick="adjustTemp(0.5)" class="w-12 h-12 rounded-2xl bg-white border border-jdh-300 hover:bg-jdh-50 active:scale-95 flex items-center justify-center text-jdh-900 font-extrabold text-xl shadow-sm transition">
                             +
                         </button>
                     </div>
@@ -474,16 +536,19 @@
                     <input type="text" id="log-corrective-text" placeholder="تفاصيل الإجراء التصحيحي المتخذ..." class="w-full px-3 py-2 bg-white border border-red-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-500">
                 </div>
 
-                <!-- Staff Name -->
+                <!-- Staff Name with Quick-Tap Chips -->
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1.5">اسم الموظف / الشيف المسؤول <span class="text-red-500">*</span></label>
-                    <input type="text" id="log-staff-name" required placeholder="مثال: الشيف أحمد محمود" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <div id="log-staff-quick-chips" class="flex flex-wrap gap-1.5 mb-2">
+                        <!-- Populated via JS -->
+                    </div>
+                    <input type="text" id="log-staff-name" required placeholder="اختر اسمك بالأعلى أو اكتبه هنا..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-jdh-600">
                 </div>
 
                 <!-- Optional Notes -->
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1.5">ملاحظات إضافية (اختياري)</label>
-                    <input type="text" id="log-notes" placeholder="مثال: تم استلام شحنة لحوم جديدة..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <input type="text" id="log-notes" placeholder="مثال: تم استلام شحنة لحوم جديدة..." class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
                 </div>
 
                 <!-- Submit Button -->
@@ -503,11 +568,11 @@
     <!-- ===================================================================== -->
     <!-- MODAL 2: Add / Edit Refrigerator Unit Modal                           -->
     <!-- ===================================================================== -->
-    <div id="unit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4 no-print">
+    <div id="unit-modal" class="fixed inset-0 bg-jdh-950/70 backdrop-blur-sm z-40 hidden flex items-center justify-center p-4 no-print">
         <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
-            <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between">
+            <div class="jdh-header-gradient text-white px-5 py-4 flex items-center justify-between border-b border-gold-500/40">
                 <h3 class="font-extrabold text-base" id="unit-modal-title">إضافة براد / مجمد جديد</h3>
-                <button onclick="closeUnitModal()" class="text-slate-400 hover:text-white p-1 rounded-xl">
+                <button onclick="closeUnitModal()" class="text-jdh-200 hover:text-white p-1 rounded-xl">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -515,22 +580,22 @@
                 <input type="hidden" id="edit-unit-id">
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1">اسم البراد / المجمد <span class="text-red-500">*</span></label>
-                    <input type="text" id="unit-name" required placeholder="مثال: براد الأسماك الطازجة" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <input type="text" id="unit-name" required placeholder="مثال: براد الأسماك الطازجة" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-jdh-600">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-extrabold text-slate-700 mb-1">المطبخ التابع له <span class="text-red-500">*</span></label>
-                        <input type="text" id="unit-kitchen" list="kitchens-datalist" required placeholder="مثال: المطبخ الرئيسي" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <input type="text" id="unit-kitchen" list="kitchens-datalist" required placeholder="مثال: المطبخ الرئيسي" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-jdh-600">
                         <datalist id="kitchens-datalist"></datalist>
                     </div>
                     <div>
                         <label class="block text-xs font-extrabold text-slate-700 mb-1">القسم / الموقع الفرعي</label>
-                        <input type="text" id="unit-location" required placeholder="مثال: قسم التحضير" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        <input type="text" id="unit-location" required placeholder="مثال: قسم التحضير" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
                     </div>
                 </div>
                 <div>
                     <label class="block text-xs font-extrabold text-slate-700 mb-1">نوع الوحدة (معيار HACCP)</label>
-                    <select id="unit-type" onchange="setDefaultLimitsByType()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <select id="unit-type" onchange="setDefaultLimitsByType()" class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-jdh-600">
                         <option value="chiller">براد تبريد (Chiller: 0°C إلى 4°C)</option>
                         <option value="freezer">مجمد / فريزر (Freezer: -18°C أو أقل)</option>
                     </select>
@@ -551,7 +616,7 @@
                 </div>
                 <div class="pt-2 flex gap-2">
                     <button type="button" onclick="closeUnitModal()" class="w-1/3 py-2.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100">إلغاء</button>
-                    <button type="submit" class="w-2/3 py-2.5 rounded-xl font-extrabold text-sm text-white bg-emerald-600 hover:bg-emerald-500">حفظ الوحدة</button>
+                    <button type="submit" class="w-2/3 py-2.5 rounded-xl font-extrabold text-sm text-white bg-jdh-800 hover:bg-jdh-700">حفظ الوحدة</button>
                 </div>
             </form>
         </div>
@@ -560,19 +625,19 @@
     <!-- ===================================================================== -->
     <!-- MODAL 3: Manager Automatic Notifications Center                       -->
     <!-- ===================================================================== -->
-    <div id="notifications-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
+    <div id="notifications-modal" class="fixed inset-0 bg-jdh-950/70 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4 no-print">
         <div class="bg-white w-full sm:max-w-xl rounded-t-3xl sm:rounded-3xl shadow-2xl overflow-hidden max-h-[88vh] flex flex-col">
-            <div class="bg-slate-900 text-white px-5 py-4 flex items-center justify-between shrink-0">
+            <div class="jdh-header-gradient text-white px-5 py-4 flex items-center justify-between shrink-0 border-b border-gold-500/40">
                 <div class="flex items-center gap-2.5">
-                    <div class="bg-red-500/20 text-red-400 p-2 rounded-xl border border-red-500/30">
+                    <div class="bg-red-500/20 text-red-300 p-2 rounded-xl border border-red-400/40">
                         <i data-lucide="bell-ring" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h3 class="font-extrabold text-base">مركز إشعارات المدير التلقائية</h3>
-                        <p class="text-[11px] text-slate-400">تنبيهات فورية لأعطال التبريد، فروقات الحرارة، والقراءات المتأخرة</p>
+                        <h3 class="font-extrabold text-base">مركز إشعارات المدير — فندق جوليا دومنا</h3>
+                        <p class="text-[11px] text-jdh-200">تنبيهات فورية لأعطال التبريد، فروقات الحرارة، والقراءات المتأخرة</p>
                     </div>
                 </div>
-                <button onclick="closeNotificationsModal()" class="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800">
+                <button onclick="closeNotificationsModal()" class="text-jdh-200 hover:text-white p-1.5 rounded-xl hover:bg-white/10">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
@@ -592,6 +657,51 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- MODAL 4: Manager PIN Authentication Modal                             -->
+    <!-- ===================================================================== -->
+    <div id="pin-modal" class="fixed inset-0 bg-jdh-950/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden">
+            <div class="jdh-header-gradient text-white px-5 py-4 flex items-center justify-between border-b border-gold-500/40">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="shield-lock" class="w-5 h-5 text-gold-300"></i>
+                    <h3 class="font-extrabold text-base">صلاحية المدير المطلوبة</h3>
+                </div>
+                <button onclick="closePinModal()" class="text-jdh-200 hover:text-white p-1 rounded-xl">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form onsubmit="handlePinSubmit(event)" class="p-5 space-y-4 text-center">
+                <p id="pin-modal-reason" class="text-xs font-bold text-slate-600">أدخل رمز قفل المدير (PIN) للمتابعة:</p>
+                <input type="password" inputmode="numeric" id="pin-input" required placeholder="••••••" dir="ltr" class="w-full text-center text-2xl tracking-[0.4em] font-extrabold py-3 px-4 bg-slate-50 border-2 border-jdh-200 rounded-2xl focus:outline-none focus:border-jdh-700">
+                <p id="pin-error-msg" class="hidden text-xs font-extrabold text-red-600">الرمز غير صحيح، يرجى المحاولة مرة أخرى.</p>
+                <div class="flex gap-2 pt-1">
+                    <button type="button" onclick="closePinModal()" class="w-1/3 py-2.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100">إلغاء</button>
+                    <button type="submit" class="w-2/3 py-2.5 rounded-xl font-extrabold text-sm text-white bg-jdh-800 hover:bg-jdh-700">تأكيد وفتح القفل</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- MODAL 5: Smart Confirmation Dialog (Prevent Accidental Deletes)       -->
+    <!-- ===================================================================== -->
+    <div id="confirm-modal" class="fixed inset-0 bg-jdh-950/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden p-5 space-y-4 text-center">
+            <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-600 flex items-center justify-center mx-auto">
+                <i data-lucide="alert-triangle" class="w-6 h-6"></i>
+            </div>
+            <div>
+                <h3 id="confirm-modal-title" class="font-extrabold text-base text-slate-900">تأكيد الحذف</h3>
+                <p id="confirm-modal-msg" class="text-xs text-slate-600 mt-1.5 leading-relaxed">هل أنت متأكد من تنفيذ هذا الإجراء؟ لا يمكن التراجع عنه.</p>
+            </div>
+            <div class="flex gap-2 pt-1">
+                <button type="button" onclick="closeConfirmModal()" class="w-1/2 py-2.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200">إلغاء</button>
+                <button type="button" onclick="executeConfirmAction()" class="w-1/2 py-2.5 rounded-xl font-extrabold text-sm text-white bg-red-600 hover:bg-red-700">نعم، تأكيد الحذف</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- HIDDEN PRINT AREA (For Health Inspection Report & QR Stickers)        -->
     <!-- ===================================================================== -->
     <div id="print-area" class="hidden"></div>
@@ -603,7 +713,7 @@
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // 🔑 إعدادات Firebase الخاصة بك (مشروع JDH PROJECT - متصل وجاهز)
+        // 🔑 إعدادات Firebase الخاصة بفندق جوليا دومنا (مشروع JDH PROJECT)
         // =========================================================================
         const MANUAL_FIREBASE_CONFIG = {
             apiKey: "AIzaSyCQ4KX5gXQt6ZjmmqJ6im9X7z2tLUA3sPc",
@@ -613,6 +723,9 @@
             messagingSenderId: "245058750336",
             appId: "1:245058750336:web:de1d20b4056954818de365"
         };
+
+        const HOTEL_NAME_AR = "فندق جوليا دومنا";
+        const HOTEL_NAME_EN = "Julia Domna Hotel";
 
         function safeLucideIcons() {
             if (window.lucide && typeof window.lucide.createIcons === 'function') {
@@ -645,7 +758,13 @@
         let auth = null;
         let currentUser = null;
         let isInitialAlertsLoad = true;
-        let lastStaffName = '';
+        let lastStaffName = localStorage.getItem('jdh_last_staff') || '';
+        let pendingScannedUnitId = null;
+
+        // Manager PIN session state
+        let isManagerUnlocked = false;
+        let pendingPinCallback = null;
+        let pendingConfirmCallback = null;
 
         const defaultSchedule = [
             { id: 'slot1', name: 'القراءة الأولى (الصباحية)', time: '08:00' },
@@ -657,8 +776,16 @@
             name: 'مدير الجودة والعمليات',
             phone: '',
             maxDiffThreshold: 3.0,
-            soundEnabled: true
+            soundEnabled: true,
+            pin: '102030'
         };
+
+        const defaultStaffList = [
+            'الشيف عمار',
+            'الشيف سامر العلي',
+            'الشيف ريم حسن',
+            'الشيف أحمد محمود'
+        ];
 
         const defaultUnits = [
             { id: 'FRG-01', name: 'براد اللحوم والدواجن الطازجة', kitchen: 'المطبخ الرئيسي', location: 'قسم الجزارة والتحضير', type: 'chiller', minTemp: 0, idealTemp: 2, maxTemp: 4 },
@@ -684,78 +811,19 @@
                     correctiveAction: '',
                     staff: 'الشيف سامر العلي',
                     notes: 'تم فحص الرفوف وترتيب اللحوم'
-                },
-                {
-                    id: 'LOG-102',
-                    unitId: 'FRG-02',
-                    timestamp: `${todayStr}T08:20`,
-                    shiftId: 'slot1',
-                    shift: 'القراءة الأولى (الصباحية)',
-                    temp: 3.5,
-                    status: 'safe',
-                    correctiveAction: '',
-                    staff: 'الشيف سامر العلي',
-                    notes: ''
-                },
-                {
-                    id: 'LOG-103',
-                    unitId: 'FRZ-01',
-                    timestamp: `${todayStr}T08:25`,
-                    shiftId: 'slot1',
-                    shift: 'القراءة الأولى (الصباحية)',
-                    temp: -19.5,
-                    status: 'safe',
-                    correctiveAction: '',
-                    staff: 'الشيف سامر العلي',
-                    notes: ''
-                },
-                {
-                    id: 'LOG-104',
-                    unitId: 'FRG-04',
-                    timestamp: `${todayStr}T14:10`,
-                    shiftId: 'slot2',
-                    shift: 'القراءة الثانية (الظهيرة)',
-                    temp: 5.8,
-                    status: 'danger',
-                    correctiveAction: 'فحص إحكام إغلاق الباب وإعادة القياس بعد 15 دقيقة',
-                    staff: 'الشيف ريم حسن',
-                    notes: 'الباب كان مفتوحاً أثناء التحضير'
-                },
-                {
-                    id: 'LOG-105',
-                    unitId: 'FRG-04',
-                    timestamp: `${todayStr}T14:30`,
-                    shiftId: 'slot2',
-                    shift: 'القراءة الثانية (الظهيرة)',
-                    temp: 3.1,
-                    status: 'safe',
-                    correctiveAction: 'عادت الحرارة للنطاق الآمن بعد إغلاق الباب',
-                    staff: 'الشيف ريم حسن',
-                    notes: 'قراءة متابعة'
                 }
             ];
         }
-
-        const defaultInitialAlerts = [
-            {
-                id: 'ALT-INIT-1',
-                type: 'danger',
-                title: 'تجاوز الحد الحرج: براد الحلويات والكريمة (FRG-04)',
-                message: 'تم تسجيل قراءة 5.8°C في مطبخ الحلويات بواسطة الشيف ريم حسن (الحد الآمن: 0°C إلى 4°C).',
-                kitchen: 'مطبخ الحلويات',
-                unitId: 'FRG-04',
-                timestamp: new Date().toISOString(),
-                read: false
-            }
-        ];
 
         // Live state synced with cloud database
         let units = [...defaultUnits];
         let logs = [];
         let scheduleTimes = [...defaultSchedule];
+        let staffList = [...defaultStaffList];
         let managerConfig = { ...defaultManagerConfig };
         let managerAlerts = [];
         let activeKitchenFilter = 'all';
+        let activeDashboardKitchen = 'all';
 
         // Strict public shared data path helpers
         function getPublicCollection(colName) {
@@ -779,6 +847,96 @@
                 dot.classList.add('bg-amber-400', 'animate-pulse');
             }
             label.textContent = text;
+        }
+
+        // ==========================================
+        // 1.2 MANAGER PIN & CONFIRMATION MODALS
+        // ==========================================
+        function updateManagerLockUI() {
+            const btn = document.getElementById('manager-lock-btn');
+            const icon = document.getElementById('manager-lock-icon');
+            const txt = document.getElementById('manager-lock-text');
+            if (!btn || !icon || !txt) return;
+
+            if (isManagerUnlocked) {
+                btn.classList.remove('bg-jdh-950/60', 'border-gold-500/30', 'text-jdh-200');
+                btn.classList.add('bg-gold-500/20', 'border-gold-400', 'text-gold-200');
+                icon.setAttribute('data-lucide', 'unlock');
+                txt.textContent = 'وضع المدير';
+            } else {
+                btn.classList.remove('bg-gold-500/20', 'border-gold-400', 'text-gold-200');
+                btn.classList.add('bg-jdh-950/60', 'border-gold-500/30', 'text-jdh-200');
+                icon.setAttribute('data-lucide', 'lock');
+                txt.textContent = 'وضع الشيف';
+            }
+            safeLucideIcons();
+        }
+
+        function toggleManagerLock() {
+            if (isManagerUnlocked) {
+                isManagerUnlocked = false;
+                updateManagerLockUI();
+                showToast('تم قفل صلاحيات المدير والعودة لوضع الشيف', 'info');
+            } else {
+                requireManagerPin('أدخل رمز المدير لفتح صلاحيات التعديل والحذف:', () => {
+                    showToast('تم تفعيل وضع المدير بنجاح', 'success');
+                });
+            }
+        }
+
+        function requireManagerPin(reasonText, callback) {
+            if (isManagerUnlocked) {
+                callback();
+                return;
+            }
+            pendingPinCallback = callback;
+            document.getElementById('pin-modal-reason').textContent = reasonText || 'أدخل رمز قفل المدير (PIN) للمتابعة:';
+            document.getElementById('pin-input').value = '';
+            document.getElementById('pin-error-msg').classList.add('hidden');
+            document.getElementById('pin-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('pin-input').focus(), 100);
+            safeLucideIcons();
+        }
+
+        function closePinModal() {
+            document.getElementById('pin-modal').classList.add('hidden');
+            pendingPinCallback = null;
+        }
+
+        function handlePinSubmit(e) {
+            e.preventDefault();
+            const entered = document.getElementById('pin-input').value.trim();
+            const expectedPin = String(managerConfig.pin || '102030');
+            if (entered === expectedPin) {
+                isManagerUnlocked = true;
+                updateManagerLockUI();
+                const cb = pendingPinCallback;
+                closePinModal();
+                if (typeof cb === 'function') cb();
+            } else {
+                document.getElementById('pin-error-msg').classList.remove('hidden');
+                document.getElementById('pin-input').value = '';
+                document.getElementById('pin-input').focus();
+            }
+        }
+
+        function showConfirmModal(title, message, onConfirm) {
+            document.getElementById('confirm-modal-title').textContent = title;
+            document.getElementById('confirm-modal-msg').textContent = message;
+            pendingConfirmCallback = onConfirm;
+            document.getElementById('confirm-modal').classList.remove('hidden');
+            safeLucideIcons();
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').classList.add('hidden');
+            pendingConfirmCallback = null;
+        }
+
+        function executeConfirmAction() {
+            const cb = pendingConfirmCallback;
+            closeConfirmModal();
+            if (typeof cb === 'function') cb();
         }
 
         // Cloud write operations (guarded by auth)
@@ -850,6 +1008,16 @@
             }
         }
 
+        async function saveStaffListToCloud(names) {
+            if (!currentUser || !db) return;
+            try {
+                await setDoc(getPublicDoc('settings', 'staff'), { names });
+            } catch (err) {
+                console.error('Error saving staff list:', err);
+                showToast('تعذر حفظ قائمة الطاقم سحابياً', 'warning');
+            }
+        }
+
         async function saveManagerConfigToCloud(cfg) {
             if (!currentUser || !db) return;
             try {
@@ -869,14 +1037,42 @@
                     const promises = [];
                     defaultUnits.forEach(u => promises.push(setDoc(getPublicDoc('units', u.id), u)));
                     generateInitialLogs().forEach(l => promises.push(setDoc(getPublicDoc('logs', l.id), l)));
-                    defaultInitialAlerts.forEach(a => promises.push(setDoc(getPublicDoc('alerts', a.id), a)));
                     promises.push(setDoc(getPublicDoc('settings', 'schedule'), { slots: defaultSchedule }));
+                    promises.push(setDoc(getPublicDoc('settings', 'staff'), { names: defaultStaffList }));
                     promises.push(setDoc(getPublicDoc('settings', 'manager'), defaultManagerConfig));
                     await Promise.all(promises);
                 }
             } catch (err) {
                 console.error('Seed check error:', err);
             }
+        }
+
+        // Sync open log modal dropdowns if live cloud updates arrive while modal is open
+        function syncOpenLogModalSelects() {
+            const modal = document.getElementById('log-modal');
+            if (!modal || modal.classList.contains('hidden')) return;
+
+            const unitSelect = document.getElementById('log-unit-select');
+            if (unitSelect) {
+                const currentSelected = unitSelect.value;
+                unitSelect.innerHTML = units.map(u => `<option value="${u.id}">${u.name} (${u.id}) — ${u.kitchen}</option>`).join('');
+                if (units.some(u => u.id === currentSelected)) {
+                    unitSelect.value = currentSelected;
+                }
+                onLogUnitChange(false);
+            }
+
+            const shiftSelect = document.getElementById('log-shift');
+            if (shiftSelect) {
+                const currentShift = shiftSelect.value;
+                shiftSelect.innerHTML = scheduleTimes.map(s => `<option value="${s.id}">${s.name} — الساعة ${s.time}</option>`).join('');
+                if (scheduleTimes.some(s => s.id === currentShift)) {
+                    shiftSelect.value = currentShift;
+                } else {
+                    shiftSelect.value = getAutoShiftId();
+                }
+            }
+            renderQuickStaffChips();
         }
 
         // Attach real-time listeners after authentication
@@ -898,6 +1094,14 @@
                     units = fetched.sort((a, b) => a.id.localeCompare(b.id));
                 }
                 refreshAllViews();
+                syncOpenLogModalSelects();
+
+                // Open scanned QR modal AFTER real cloud units are loaded
+                if (pendingScannedUnitId) {
+                    const targetId = pendingScannedUnitId;
+                    pendingScannedUnitId = null;
+                    openLogModal(targetId, true);
+                }
             }, (err) => {
                 console.error('Units listener error:', err);
                 setCloudStatus('error', 'خطأ في مزامنة الوحدات');
@@ -914,7 +1118,7 @@
                 setCloudStatus('error', 'خطأ في مزامنة سجل القراءات');
             });
 
-            // 3. Manager Alerts listener (triggers live sound + toast on remote alerts)
+            // 3. Manager Alerts listener
             onSnapshot(getPublicCollection('alerts'), (snap) => {
                 const prevUnreadIds = new Set(managerAlerts.filter(a => !a.read).map(a => a.id));
                 const fetched = [];
@@ -938,17 +1142,22 @@
                 console.error('Alerts listener error:', err);
             });
 
-            // 4. Settings listener (schedule & manager config)
+            // 4. Settings listener (schedule, staff & manager config)
             onSnapshot(getPublicCollection('settings'), (snap) => {
                 snap.forEach(d => {
                     if (d.id === 'schedule' && Array.isArray(d.data().slots)) {
                         scheduleTimes = d.data().slots;
                     }
+                    if (d.id === 'staff' && Array.isArray(d.data().names)) {
+                        staffList = d.data().names;
+                    }
                     if (d.id === 'manager') {
                         managerConfig = { ...defaultManagerConfig, ...d.data() };
+                        if (!managerConfig.pin) managerConfig.pin = '102030';
                     }
                 });
                 refreshAllViews();
+                syncOpenLogModalSelects();
             }, (err) => {
                 console.error('Settings listener error:', err);
             });
@@ -959,13 +1168,17 @@
             const userIdDisplay = document.getElementById('session-user-id');
             if (userIdDisplay) userIdDisplay.textContent = 'local-preview';
             if (logs.length === 0) logs = generateInitialLogs();
-            if (managerAlerts.length === 0) managerAlerts = [...defaultInitialAlerts];
             refreshAllViews();
+            if (pendingScannedUnitId) {
+                const targetId = pendingScannedUnitId;
+                pendingScannedUnitId = null;
+                openLogModal(targetId, true);
+            }
         }
 
         async function initCloudSync() {
             if (!firebaseConfig) {
-                activateLocalFallback('وضع العرض المحلي (أضف مفاتيح Firebase في الكود لتفعيل المزامنة)');
+                activateLocalFallback('وضع العرض المحلي');
                 return;
             }
 
@@ -985,7 +1198,7 @@
                 const userIdDisplay = document.getElementById('session-user-id');
                 if (userIdDisplay) userIdDisplay.textContent = currentUser.uid;
 
-                setCloudStatus('connected', 'متصل بالسحابة • المزامنة اللحظية مفعّلة لجميع المطابخ والمدير');
+                setCloudStatus('connected', 'متصل بالسحابة • المزامنة اللحظية مفعّلة لفندق جوليا دومنا');
 
                 await seedCloudIfEmpty();
                 attachRealtimeListeners();
@@ -1014,9 +1227,7 @@
                 gain.connect(ctx.destination);
                 osc.start();
                 osc.stop(ctx.currentTime + 0.4);
-            } catch (e) {
-                // Audio context blocked before interaction
-            }
+            } catch (e) {}
         }
 
         function pushManagerAlert({ type, title, message, kitchen, unitId }) {
@@ -1073,7 +1284,7 @@
                     <div class="py-12 text-center text-slate-400">
                         <i data-lucide="check-circle-2" class="w-12 h-12 mx-auto mb-2 text-emerald-500 opacity-60"></i>
                         <p class="font-bold text-slate-600">لا توجد تنبيهات أو مشاكل حالياً</p>
-                        <p class="text-xs mt-1">جميع البرادات تعمل ضمن النطاق الآمن.</p>
+                        <p class="text-xs mt-1">جميع برادات ${HOTEL_NAME_AR} تعمل ضمن النطاق الآمن.</p>
                     </div>
                 `;
                 safeLucideIcons();
@@ -1092,7 +1303,7 @@
                 const dt = new Date(a.timestamp);
                 const timeLabel = `${dt.toLocaleDateString('ar-EG')} - ${dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}`;
 
-                const waText = encodeURIComponent(`🚨 تنبيه نظام HACCP للمدير (${managerConfig.name}):\n${a.title}\nالمطبخ: ${a.kitchen}\nالتفاصيل: ${a.message}\nالوقت: ${timeLabel}`);
+                const waText = encodeURIComponent(`🚨 تنبيه نظام HACCP — ${HOTEL_NAME_AR}\nإلى: ${managerConfig.name}\n${a.title}\nالمطبخ: ${a.kitchen}\nالتفاصيل: ${a.message}\nالوقت: ${timeLabel}`);
                 const waUrl = managerConfig.phone ? `https://wa.me/${managerConfig.phone.replace(/[^0-9]/g, '')}?text=${waText}` : `https://wa.me/?text=${waText}`;
 
                 return `
@@ -1149,11 +1360,13 @@
         }
 
         function clearResolvedAlerts() {
-            const toDelete = managerAlerts.filter(a => a.read);
-            toDelete.forEach(a => deleteAlertFromCloud(a.id));
-            managerAlerts = managerAlerts.filter(a => !a.read);
-            updateNotificationBadges();
-            renderNotificationsList();
+            requireManagerPin('أدخل رمز المدير لمسح التنبيهات المقروءة:', () => {
+                const toDelete = managerAlerts.filter(a => a.read);
+                toDelete.forEach(a => deleteAlertFromCloud(a.id));
+                managerAlerts = managerAlerts.filter(a => !a.read);
+                updateNotificationBadges();
+                renderNotificationsList();
+            });
         }
 
         function runMissedReadingsCheck(manualTrigger = false) {
@@ -1200,7 +1413,72 @@
         }
 
         // ==========================================
-        // 2. HACCP TEMPERATURE EVALUATION ENGINE
+        // 1.8 DAILY WHATSAPP SUMMARY REPORT
+        // ==========================================
+        function sendDailyWhatsAppSummary() {
+            const selectedDate = document.getElementById('manager-date-picker')?.value || new Date().toISOString().split('T')[0];
+            const kitchens = [...new Set(units.map(u => u.kitchen))];
+            const totalRequiredAll = units.length * scheduleTimes.length;
+            let totalCompletedAll = 0;
+            let totalIssuesAll = 0;
+            const kitchenLines = [];
+
+            kitchens.forEach(kitchen => {
+                const kUnits = units.filter(u => u.kitchen === kitchen);
+                const kReq = kUnits.length * scheduleTimes.length;
+                let kDone = 0;
+                let kIssues = 0;
+
+                kUnits.forEach(u => {
+                    scheduleTimes.forEach(slot => {
+                        const found = logs.find(l =>
+                            l.unitId === u.id &&
+                            (l.timestamp || '').startsWith(selectedDate) &&
+                            (l.shiftId === slot.id || l.shift === slot.name)
+                        );
+                        if (found) {
+                            kDone++;
+                            if (found.status !== 'safe') kIssues++;
+                        }
+                    });
+                });
+
+                totalCompletedAll += kDone;
+                totalIssuesAll += kIssues;
+                const kPct = kReq > 0 ? Math.round((kDone / kReq) * 100) : 0;
+                const icon = kIssues > 0 ? '🚨' : (kPct === 100 ? '✅' : '⚠️');
+                kitchenLines.push(`${icon} ${kitchen}: ${kDone}/${kReq} قراءة (${kPct}%)${kIssues > 0 ? ` — ${kIssues} مخالفة` : ''}`);
+            });
+
+            const overallPct = totalRequiredAll > 0 ? Math.round((totalCompletedAll / totalRequiredAll) * 100) : 0;
+            const missedTotal = Math.max(0, totalRequiredAll - totalCompletedAll);
+
+            const message = [
+                `🏨 *${HOTEL_NAME_AR} | ${HOTEL_NAME_EN}*`,
+                `📋 *التقرير اليومي لنظام سلامة الغذاء (HACCP)*`,
+                `📅 التاريخ: ${selectedDate}`,
+                `──────────────────`,
+                `📊 *الملخص العام:*`,
+                `• نسبة الإنجاز: ${overallPct}% (${totalCompletedAll} من ${totalRequiredAll})`,
+                `• القراءات المتبقية/المفقودة: ${missedTotal}`,
+                `• مخالفات/تحذيرات الحرارة: ${totalIssuesAll}`,
+                `──────────────────`,
+                `👨‍🍳 *تفاصيل المطابخ:*`,
+                ...kitchenLines,
+                `──────────────────`,
+                `المسؤول: ${managerConfig.name}`
+            ].join('\n');
+
+            const encoded = encodeURIComponent(message);
+            const waUrl = managerConfig.phone
+                ? `https://wa.me/${managerConfig.phone.replace(/[^0-9]/g, '')}?text=${encoded}`
+                : `https://wa.me/?text=${encoded}`;
+
+            window.open(waUrl, '_blank');
+        }
+
+        // ==========================================
+        // 2. HACCP TEMPERATURE EVALUATION ENGINE & TREND SPARKLINE
         // ==========================================
         function evaluateTemperature(temp, unit) {
             if (!unit || isNaN(temp)) {
@@ -1257,6 +1535,59 @@
             }
         }
 
+        function buildUnitSparklineHTML(unit) {
+            const recent = logs
+                .filter(l => l.unitId === unit.id && typeof l.temp === 'number')
+                .sort((a, b) => (a.timestamp || '').localeCompare(b.timestamp || ''))
+                .slice(-7);
+
+            if (recent.length < 2) {
+                return `<span class="text-[10px] text-slate-400 font-semibold">قراءات قليلة للرسم (${recent.length})</span>`;
+            }
+
+            const temps = recent.map(r => r.temp);
+            const minVal = Math.min(...temps, unit.minTemp);
+            const maxVal = Math.max(...temps, unit.maxTemp);
+            const span = (maxVal - minVal) || 1;
+
+            const width = 104;
+            const height = 28;
+            const padX = 6;
+            const padY = 5;
+
+            const points = recent.map((r, i) => {
+                const x = padX + (i / (recent.length - 1)) * (width - padX * 2);
+                const y = height - padY - ((r.temp - minVal) / span) * (height - padY * 2);
+                const color = r.status === 'safe' ? '#16a34a' : (r.status === 'warning' ? '#d97706' : '#dc2626');
+                return { x, y, color, temp: r.temp };
+            });
+
+            const polyPoints = points.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+            const delta = recent[recent.length - 1].temp - recent[0].temp;
+            let trendLabel = 'مستقر';
+            let trendClass = 'text-emerald-700';
+            if (delta >= 1.5) {
+                trendLabel = `↗ +${delta.toFixed(1)}°`;
+                trendClass = 'text-red-600';
+            } else if (delta <= -1.5) {
+                trendLabel = `↘ ${delta.toFixed(1)}°`;
+                trendClass = 'text-sky-700';
+            }
+
+            return `
+                <div class="flex flex-col items-center justify-center gap-0.5">
+                    <svg width="${width}" height="${height}" class="overflow-visible">
+                        <polyline fill="none" stroke="#8d193b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" points="${polyPoints}" />
+                        ${points.map(p => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="2.7" fill="${p.color}" stroke="#ffffff" stroke-width="1"><title>${p.temp}°C</title></circle>`).join('')}
+                    </svg>
+                    <div class="flex items-center gap-1.5 text-[10px] font-bold">
+                        <span class="text-slate-400">آخر ${recent.length}:</span>
+                        <span class="${trendClass}" dir="ltr">${trendLabel}</span>
+                    </div>
+                </div>
+            `;
+        }
+
         // ==========================================
         // 3. UI RENDERING & TABS
         // ==========================================
@@ -1264,19 +1595,20 @@
             ['dashboard', 'manager', 'logs', 'qr', 'units'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
                 const btn = document.getElementById(`tab-${t}`);
-                btn.classList.remove('bg-slate-900', 'text-white', 'shadow-sm');
-                btn.classList.add('text-slate-600', 'hover:bg-slate-100');
+                btn.classList.remove('bg-jdh-800', 'text-white', 'shadow-sm');
+                btn.classList.add('text-slate-600', 'hover:bg-jdh-50');
             });
 
             document.getElementById(`view-${tabId}`).classList.remove('hidden');
             const activeBtn = document.getElementById(`tab-${tabId}`);
-            activeBtn.classList.remove('text-slate-600', 'hover:bg-slate-100');
-            activeBtn.classList.add('bg-slate-900', 'text-white', 'shadow-sm');
+            activeBtn.classList.remove('text-slate-600', 'hover:bg-jdh-50');
+            activeBtn.classList.add('bg-jdh-800', 'text-white', 'shadow-sm');
 
             if (tabId === 'manager') renderManagerDashboard();
             if (tabId === 'qr') renderQRCards();
             if (tabId === 'logs') renderLogsTable();
             if (tabId === 'units') {
+                renderStaffManageChips();
                 renderScheduleSettings();
                 renderManageUnits();
             }
@@ -1291,26 +1623,26 @@
             const complianceRate = todayLogs.length > 0 ? Math.round((safeCount / todayLogs.length) * 100) : 100;
 
             const kpiHTML = `
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3.5">
-                    <div class="w-11 h-11 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <div class="bg-white p-4 rounded-2xl border border-jdh-200/70 shadow-sm flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-jdh-50 text-jdh-700 flex items-center justify-center shrink-0">
                         <i data-lucide="snowflake" class="w-5 h-5"></i>
                     </div>
                     <div>
                         <p class="text-xs font-bold text-slate-500">إجمالي الوحدات</p>
-                        <p class="text-xl font-extrabold text-slate-900">${units.length} <span class="text-xs font-semibold text-slate-400">براد/مجمد</span></p>
+                        <p class="text-xl font-extrabold text-jdh-950">${units.length} <span class="text-xs font-semibold text-slate-400">براد/مجمد</span></p>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3.5">
+                <div class="bg-white p-4 rounded-2xl border border-jdh-200/70 shadow-sm flex items-center gap-3.5">
                     <div class="w-11 h-11 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                         <i data-lucide="check-circle" class="w-5 h-5"></i>
                     </div>
                     <div>
                         <p class="text-xs font-bold text-slate-500">قراءات اليوم</p>
-                        <p class="text-xl font-extrabold text-slate-900">${todayLogs.length} <span class="text-xs font-semibold text-slate-400">فحص مسجل</span></p>
+                        <p class="text-xl font-extrabold text-jdh-950">${todayLogs.length} <span class="text-xs font-semibold text-slate-400">فحص مسجل</span></p>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3.5">
-                    <div class="w-11 h-11 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                <div class="bg-white p-4 rounded-2xl border border-jdh-200/70 shadow-sm flex items-center gap-3.5">
+                    <div class="w-11 h-11 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                         <i data-lucide="shield-check" class="w-5 h-5"></i>
                     </div>
                     <div>
@@ -1318,7 +1650,7 @@
                         <p class="text-xl font-extrabold text-emerald-600">${complianceRate}%</p>
                     </div>
                 </div>
-                <div class="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm flex items-center gap-3.5">
+                <div class="bg-white p-4 rounded-2xl border border-jdh-200/70 shadow-sm flex items-center gap-3.5">
                     <div class="w-11 h-11 rounded-xl ${alertCount > 0 ? 'bg-red-50 text-red-600' : 'bg-slate-50 text-slate-400'} flex items-center justify-center shrink-0">
                         <i data-lucide="alert-octagon" class="w-5 h-5"></i>
                     </div>
@@ -1331,11 +1663,47 @@
             document.getElementById('kpi-section').innerHTML = kpiHTML;
         }
 
+        function setDashboardKitchenFilter(kitchenName) {
+            activeDashboardKitchen = kitchenName;
+            renderUnitsStatusGrid();
+            safeLucideIcons();
+        }
+
         function renderUnitsStatusGrid() {
             const grid = document.getElementById('units-status-grid');
+            const pillsBox = document.getElementById('dashboard-kitchen-pills');
             const todayStr = new Date().toISOString().split('T')[0];
 
-            grid.innerHTML = units.map(unit => {
+            const kitchens = [...new Set(units.map(u => u.kitchen))];
+            if (activeDashboardKitchen !== 'all' && !kitchens.includes(activeDashboardKitchen)) {
+                activeDashboardKitchen = 'all';
+            }
+
+            if (pillsBox) {
+                pillsBox.innerHTML = `
+                    <span class="text-xs font-extrabold text-jdh-900 ml-1 flex items-center gap-1">
+                        <i data-lucide="filter" class="w-3.5 h-3.5 text-jdh-700"></i>
+                        <span>المطبخ:</span>
+                    </span>
+                    <button onclick="setDashboardKitchenFilter('all')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${activeDashboardKitchen === 'all' ? 'bg-jdh-800 text-white shadow-sm' : 'bg-jdh-50 text-jdh-800 hover:bg-jdh-100'}">
+                        الكل (${units.length})
+                    </button>
+                    ${kitchens.map(k => {
+                        const count = units.filter(u => u.kitchen === k).length;
+                        return `
+                            <button onclick="setDashboardKitchenFilter('${k.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-xl text-xs font-extrabold transition ${activeDashboardKitchen === k ? 'bg-jdh-800 text-white shadow-sm' : 'bg-slate-100 text-slate-700 hover:bg-jdh-50'}">
+                                ${k} (${count})
+                            </button>
+                        `;
+                    }).join('')}
+                `;
+            }
+
+            const visibleUnits = activeDashboardKitchen === 'all'
+                ? units
+                : units.filter(u => u.kitchen === activeDashboardKitchen);
+
+            grid.innerHTML = visibleUnits.map(unit => {
                 const unitLogs = logs.filter(l => l.unitId === unit.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
                 const latest = unitLogs[0];
 
@@ -1356,7 +1724,7 @@
                 let statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600">بانتظار القراءة</span>`;
                 let tempDisplay = `--.-°C`;
                 let tempColor = `text-slate-400`;
-                let borderAccent = `border-slate-200/80`;
+                let borderAccent = `border-jdh-200/70 hover:border-jdh-400`;
                 let lastTime = `لم يسجل اليوم`;
 
                 if (latest) {
@@ -1388,14 +1756,14 @@
                         <div>
                             <div class="flex items-start justify-between gap-2 mb-3">
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xs font-extrabold text-slate-400 bg-slate-100 px-2 py-0.5 rounded-md">${unit.id}</span>
+                                    <span class="text-xs font-extrabold text-jdh-700 bg-jdh-50 px-2 py-0.5 rounded-md border border-jdh-100">${unit.id}</span>
                                     ${typeBadge}
                                 </div>
                                 ${statusBadge}
                             </div>
-                            <h3 class="font-extrabold text-slate-900 text-base group-hover:text-emerald-700 transition">${unit.name}</h3>
+                            <h3 class="font-extrabold text-slate-900 text-base group-hover:text-jdh-800 transition">${unit.name}</h3>
                             <p class="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
-                                <i data-lucide="chef-hat" class="w-3 h-3 text-emerald-600"></i>
+                                <i data-lucide="chef-hat" class="w-3 h-3 text-jdh-700"></i>
                                 <strong class="text-slate-700">${unit.kitchen}</strong> — ${unit.location}
                             </p>
                         </div>
@@ -1414,8 +1782,8 @@
                             <div class="text-left">
                                 <span class="block text-[11px] text-slate-400">المثالية: <strong class="text-emerald-700" dir="ltr">${unit.idealTemp}°C</strong></span>
                                 <span class="block text-[11px] text-slate-400 mb-1.5">النطاق: <strong class="text-slate-600" dir="ltr">${rangeText}</strong></span>
-                                <span class="inline-flex items-center gap-1.5 bg-slate-900 group-hover:bg-emerald-600 text-white text-xs font-bold px-3 py-2 rounded-xl transition">
-                                    <i data-lucide="qr-code" class="w-3.5 h-3.5"></i>
+                                <span class="inline-flex items-center gap-1.5 bg-jdh-800 group-hover:bg-jdh-700 text-white text-xs font-bold px-3 py-2 rounded-xl transition">
+                                    <i data-lucide="qr-code" class="w-3.5 h-3.5 text-gold-300"></i>
                                     <span>تسجيل حرارة</span>
                                 </span>
                             </div>
@@ -1469,7 +1837,7 @@
                 const tempColor = evalRes.status === 'safe' ? 'text-emerald-700' : (evalRes.status === 'warning' ? 'text-amber-700' : 'text-red-700');
 
                 return `
-                    <tr class="hover:bg-slate-50/80 transition">
+                    <tr class="hover:bg-jdh-50/40 transition">
                         <td class="py-3.5 px-4 whitespace-nowrap">
                             <div class="font-bold text-slate-800 text-xs">${dateStr}</div>
                             <div class="text-[11px] text-slate-500">${timeStr}</div>
@@ -1491,7 +1859,7 @@
                         </td>
                         <td class="py-3.5 px-4 text-xs font-bold text-slate-800 whitespace-nowrap">${log.staff}</td>
                         <td class="py-3.5 px-4 text-center">
-                            <button onclick="deleteLog('${log.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف القراءة">
+                            <button onclick="deleteLog('${log.id}')" class="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="حذف القراءة (محمي برمز المدير)">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </td>
@@ -1514,7 +1882,7 @@
             const readerStr = latest ? latest.staff : '-';
 
             return [
-                `HACCP | ${unit.name}`,
+                `JDH HACCP | ${unit.name}`,
                 `ID:${unit.id} | ${unit.kitchen}`,
                 `Ideal:${unit.idealTemp}C | Read:${lastTempStr}`,
                 `By:${readerStr}`,
@@ -1530,31 +1898,28 @@
                     text,
                     width: size,
                     height: size,
-                    colorDark: "#0f172a",
+                    colorDark: "#430819",
                     colorLight: "#ffffff",
                     correctLevel: QRCode.CorrectLevel.L
                 });
             } catch (err) {
-                console.warn('QR payload too long for UTF-8, using compact fallback:', err);
                 element.innerHTML = '';
                 try {
                     new QRCode(element, {
                         text: fallbackText || text.slice(0, 80),
                         width: size,
                         height: size,
-                        colorDark: "#0f172a",
+                        colorDark: "#430819",
                         colorLight: "#ffffff",
                         correctLevel: QRCode.CorrectLevel.L
                     });
-                } catch (e2) {
-                    console.error('QR generation failed:', e2);
-                }
+                } catch (e2) {}
             }
         }
 
         function renderQRCards() {
             const container = document.getElementById('qr-cards-grid');
-            const mode = document.getElementById('qr-mode-select')?.value || 'full_data';
+            const mode = document.getElementById('qr-mode-select')?.value || 'scan_link';
 
             container.innerHTML = units.map(unit => {
                 const unitLogs = logs.filter(l => l.unitId === unit.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''));
@@ -1566,24 +1931,28 @@
                 const readerStr = latest ? latest.staff : '—';
 
                 return `
-                    <div class="bg-white rounded-2xl border-2 border-slate-200 p-5 flex flex-col items-center text-center shadow-sm">
-                        <div class="w-full flex items-center justify-between border-b border-slate-100 pb-3 mb-3">
-                            <span class="text-xs font-extrabold bg-slate-900 text-white px-2.5 py-1 rounded-lg">${unit.id}</span>
-                            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-lg">المثالية: <span dir="ltr">${unit.idealTemp}°C</span></span>
+                    <div class="bg-white rounded-2xl border-2 border-jdh-200 p-5 flex flex-col items-center text-center shadow-sm">
+                        <div class="w-full flex items-center justify-between border-b border-jdh-100 pb-3 mb-3">
+                            <span class="text-xs font-extrabold bg-jdh-800 text-gold-300 px-2.5 py-1 rounded-lg">${unit.id}</span>
+                            <span class="text-[11px] font-extrabold text-jdh-900">${HOTEL_NAME_AR}</span>
                         </div>
 
                         <h3 class="font-extrabold text-base text-slate-900">${unit.name}</h3>
                         <p class="text-xs text-slate-500 mb-3">${unit.kitchen} — ${unit.location}</p>
 
                         <!-- QR Code Canvas Wrapper -->
-                        <div onclick="openLogModal('${unit.id}', true)" title="اضغط لمحاكاة مسح الكود" class="cursor-pointer p-3 bg-white border-2 border-dashed border-slate-300 hover:border-emerald-500 rounded-2xl transition">
+                        <div onclick="openLogModal('${unit.id}', true)" title="اضغط لمحاكاة مسح الكود" class="cursor-pointer p-3 bg-white border-2 border-dashed border-jdh-300 hover:border-jdh-700 rounded-2xl transition">
                             <div id="qr-target-${unit.id}" class="flex items-center justify-center"></div>
                         </div>
 
                         <!-- Embedded Details Summary Box -->
-                        <div class="w-full mt-4 bg-slate-50 border border-slate-200/80 rounded-xl p-3 text-right text-xs space-y-1.5">
+                        <div class="w-full mt-4 bg-jdh-50/60 border border-jdh-100 rounded-xl p-3 text-right text-xs space-y-1.5">
                             <div class="flex justify-between">
-                                <span class="text-slate-500 font-semibold">درجة حرارة القراءة:</span>
+                                <span class="text-slate-500 font-semibold">الحرارة المثالية:</span>
+                                <span class="font-extrabold text-emerald-700" dir="ltr">${unit.idealTemp}°C</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-500 font-semibold">آخر قراءة:</span>
                                 <span class="font-extrabold text-slate-900" dir="ltr">${tempStr}</span>
                             </div>
                             <div class="flex justify-between">
@@ -1591,14 +1960,14 @@
                                 <span class="font-bold text-slate-800">${readerStr}</span>
                             </div>
                             <div class="flex justify-between">
-                                <span class="text-slate-500 font-semibold">تاريخ وساعة القراءة:</span>
+                                <span class="text-slate-500 font-semibold">التاريخ والوقت:</span>
                                 <span class="font-bold text-slate-700">${dateStr} | ${timeStr}</span>
                             </div>
                         </div>
 
-                        <button onclick="openLogModal('${unit.id}', true)" class="w-full mt-3 py-2.5 px-4 bg-emerald-50 hover:bg-emerald-600 text-emerald-700 hover:text-white font-bold text-xs sm:text-sm rounded-xl border border-emerald-200 hover:border-emerald-600 transition flex items-center justify-center gap-2">
+                        <button onclick="openLogModal('${unit.id}', true)" class="w-full mt-3 py-2.5 px-4 bg-jdh-50 hover:bg-jdh-800 text-jdh-800 hover:text-white font-bold text-xs sm:text-sm rounded-xl border border-jdh-200 hover:border-jdh-800 transition flex items-center justify-center gap-2">
                             <i data-lucide="scan" class="w-4 h-4"></i>
-                            <span>تحديث القراءة وتوليد QR جديد</span>
+                            <span>تسجيل قراءة لهذا البراد</span>
                         </button>
                     </div>
                 `;
@@ -1615,34 +1984,111 @@
             safeLucideIcons();
         }
 
+        // ==========================================
+        // 3.5 STAFF LIST MANAGEMENT
+        // ==========================================
+        function renderStaffManageChips() {
+            const container = document.getElementById('staff-manage-chips');
+            if (!container) return;
+            if (staffList.length === 0) {
+                container.innerHTML = `<span class="text-xs text-slate-400 font-semibold">لا توجد أسماء مضافة بعد.</span>`;
+                return;
+            }
+            container.innerHTML = staffList.map((name, idx) => `
+                <div class="inline-flex items-center gap-2 bg-jdh-50 border border-jdh-200 text-jdh-900 px-3 py-1.5 rounded-xl text-xs font-bold">
+                    <span>${name}</span>
+                    <button type="button" onclick="removeStaffName(${idx})" class="text-jdh-400 hover:text-red-600 transition" title="حذف الاسم">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+            safeLucideIcons();
+        }
+
+        function handleAddStaff(e) {
+            e.preventDefault();
+            const input = document.getElementById('new-staff-input');
+            const name = input.value.trim();
+            if (!name) return;
+
+            requireManagerPin('أدخل رمز المدير لإضافة اسم جديد لقائمة الطاقم:', () => {
+                if (!staffList.includes(name)) {
+                    staffList.push(name);
+                    saveStaffListToCloud(staffList);
+                    renderStaffManageChips();
+                    showToast(`تمت إضافة "${name}" لقائمة الشيفات`, 'success');
+                }
+                input.value = '';
+            });
+        }
+
+        function removeStaffName(idx) {
+            const name = staffList[idx];
+            if (!name) return;
+            requireManagerPin('أدخل رمز المدير لحذف اسم من قائمة الطاقم:', () => {
+                showConfirmModal('حذف اسم من الطاقم', `هل أنت متأكد من حذف "${name}" من قائمة الاختيار السريع؟`, () => {
+                    staffList.splice(idx, 1);
+                    saveStaffListToCloud(staffList);
+                    renderStaffManageChips();
+                    showToast('تم حذف الاسم من القائمة', 'info');
+                });
+            });
+        }
+
+        function renderQuickStaffChips() {
+            const box = document.getElementById('log-staff-quick-chips');
+            const input = document.getElementById('log-staff-name');
+            if (!box) return;
+            const currentName = input ? input.value.trim() : '';
+            box.innerHTML = staffList.map(name => {
+                const isSelected = currentName === name;
+                return `
+                    <button type="button" onclick="selectQuickStaff('${name.replace(/'/g, "\\'")}')" class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${isSelected ? 'bg-jdh-800 text-white border-jdh-800 shadow-sm' : 'bg-jdh-50 text-jdh-900 border-jdh-200 hover:bg-jdh-100'}">
+                        ${name}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectQuickStaff(name) {
+            const input = document.getElementById('log-staff-name');
+            if (input) {
+                input.value = name;
+                renderQuickStaffChips();
+            }
+        }
+
         function renderScheduleSettings() {
             const container = document.getElementById('schedule-inputs-grid');
             if (!container) return;
             container.innerHTML = scheduleTimes.map((slot, idx) => `
                 <div class="bg-slate-50 border border-slate-200 rounded-2xl p-3.5 space-y-2">
                     <label class="block text-xs font-extrabold text-slate-700">اسم الفترة رقم ${idx + 1}</label>
-                    <input type="text" id="sched-name-${idx}" value="${slot.name}" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <input type="text" id="sched-name-${idx}" value="${slot.name}" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-jdh-600">
                     <label class="block text-xs font-extrabold text-slate-700 pt-1">الساعة المطلوبة للفحص</label>
-                    <input type="time" id="sched-time-${idx}" value="${slot.time}" dir="ltr" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-extrabold text-slate-900 text-center focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    <input type="time" id="sched-time-${idx}" value="${slot.time}" dir="ltr" class="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-sm font-extrabold text-slate-900 text-center focus:outline-none focus:ring-2 focus:ring-jdh-600">
                 </div>
             `).join('');
         }
 
         function saveScheduleSettings() {
-            scheduleTimes = scheduleTimes.map((slot, idx) => ({
-                id: slot.id,
-                name: document.getElementById(`sched-name-${idx}`).value.trim() || slot.name,
-                time: document.getElementById(`sched-time-${idx}`).value || slot.time
-            }));
-            saveScheduleToCloud(scheduleTimes);
-            refreshAllViews();
-            showToast('تم حفظ ومزامنة أوقات القراءات الثلاث اليومية بنجاح', 'success');
+            requireManagerPin('أدخل رمز المدير لتعديل أوقات الفحص اليومية:', () => {
+                scheduleTimes = scheduleTimes.map((slot, idx) => ({
+                    id: slot.id,
+                    name: document.getElementById(`sched-name-${idx}`).value.trim() || slot.name,
+                    time: document.getElementById(`sched-time-${idx}`).value || slot.time
+                }));
+                saveScheduleToCloud(scheduleTimes);
+                refreshAllViews();
+                showToast('تم حفظ ومزامنة أوقات القراءات الثلاث اليومية بنجاح', 'success');
+            });
         }
 
         function renderManagerDashboard() {
             document.getElementById('mgr-name').value = managerConfig.name || '';
             document.getElementById('mgr-phone').value = managerConfig.phone || '';
             document.getElementById('mgr-diff-threshold').value = managerConfig.maxDiffThreshold ?? 3.0;
+            document.getElementById('mgr-pin').value = managerConfig.pin || '102030';
             document.getElementById('mgr-sound-toggle').checked = !!managerConfig.soundEnabled;
 
             const datePicker = document.getElementById('manager-date-picker');
@@ -1654,11 +2100,11 @@
             const kitchens = [...new Set(units.map(u => u.kitchen))];
             const pillsContainer = document.getElementById('kitchen-filter-pills');
             pillsContainer.innerHTML = `
-                <button onclick="setKitchenFilter('all')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${activeKitchenFilter === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                <button onclick="setKitchenFilter('all')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${activeKitchenFilter === 'all' ? 'bg-jdh-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-jdh-50'}">
                     جميع المطابخ (${kitchens.length})
                 </button>
                 ${kitchens.map(k => `
-                    <button onclick="setKitchenFilter('${k.replace(/'/g, "\\'")}')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${activeKitchenFilter === k ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}">
+                    <button onclick="setKitchenFilter('${k.replace(/'/g, "\\'")}')" class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition ${activeKitchenFilter === k ? 'bg-jdh-800 text-white' : 'bg-slate-100 text-slate-600 hover:bg-jdh-50'}">
                         ${k}
                     </button>
                 `).join('')}
@@ -1688,7 +2134,7 @@
                                 ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                                 : (found.status === 'warning' ? 'bg-amber-50 border-amber-300 text-amber-800' : 'bg-red-50 border-red-300 text-red-800');
                             return `
-                                <td class="py-3 px-3">
+                                <td class="py-3 px-2.5">
                                     <div class="p-2 rounded-xl border ${badgeStyle} text-xs">
                                         <div class="flex items-center justify-between font-extrabold">
                                             <span dir="ltr">${found.temp > 0 ? '+' : ''}${found.temp}°C</span>
@@ -1700,8 +2146,8 @@
                             `;
                         } else {
                             return `
-                                <td class="py-3 px-3">
-                                    <button onclick="openLogModal('${unit.id}', false, '${slot.id}')" class="w-full p-2 rounded-xl border border-dashed border-slate-300 hover:border-emerald-500 bg-slate-50 hover:bg-emerald-50/50 text-slate-400 hover:text-emerald-700 text-xs font-bold transition text-center">
+                                <td class="py-3 px-2.5">
+                                    <button onclick="openLogModal('${unit.id}', false, '${slot.id}')" class="w-full p-2 rounded-xl border border-dashed border-slate-300 hover:border-jdh-600 bg-slate-50 hover:bg-jdh-50/50 text-slate-400 hover:text-jdh-800 text-xs font-bold transition text-center">
                                         <div>لم تُقرأ بعد</div>
                                         <div class="text-[10px]">اضغط للتسجيل</div>
                                     </button>
@@ -1710,13 +2156,18 @@
                         }
                     }).join('');
 
+                    const sparklineHTML = buildUnitSparklineHTML(unit);
+
                     return `
-                        <tr class="border-t border-slate-100 hover:bg-slate-50/60">
+                        <tr class="border-t border-slate-100 hover:bg-jdh-50/30">
                             <td class="py-3 px-4">
                                 <div class="font-extrabold text-slate-900 text-xs sm:text-sm">${unit.name}</div>
                                 <div class="text-[11px] text-slate-500">${unit.id} • المثالية: <span dir="ltr" class="font-bold text-emerald-700">${unit.idealTemp}°C</span></div>
                             </td>
                             ${cellsHTML}
+                            <td class="py-3 px-3 text-center">
+                                ${sparklineHTML}
+                            </td>
                         </tr>
                     `;
                 }).join('');
@@ -1725,15 +2176,15 @@
                 const progressColor = pct === 100 ? 'bg-emerald-500' : (pct >= 50 ? 'bg-amber-500' : 'bg-red-500');
 
                 return `
-                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
-                        <div class="p-4 bg-slate-50 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="bg-white rounded-2xl border border-jdh-200/70 shadow-sm overflow-hidden">
+                        <div class="p-4 bg-jdh-50/70 border-b border-jdh-200/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div class="flex items-center gap-3">
-                                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shrink-0">
+                                <div class="w-10 h-10 rounded-xl bg-jdh-800 text-gold-300 flex items-center justify-center shrink-0">
                                     <i data-lucide="chef-hat" class="w-5 h-5"></i>
                                 </div>
                                 <div>
-                                    <h3 class="font-extrabold text-base text-slate-900">${kitchen}</h3>
-                                    <p class="text-xs text-slate-500">${kUnits.length} وحدات تبريد • تم إنجاز ${completedCount} من ${totalRequired} قراءات مطلوبة</p>
+                                    <h3 class="font-extrabold text-base text-jdh-950">${kitchen}</h3>
+                                    <p class="text-xs text-slate-600">${kUnits.length} وحدات تبريد • تم إنجاز ${completedCount} من ${totalRequired} قراءات مطلوبة</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-3">
@@ -1755,7 +2206,8 @@
                                 <thead>
                                     <tr class="bg-white text-slate-500 text-xs font-extrabold border-b border-slate-200">
                                         <th class="py-3 px-4 w-1/4">البراد / الفريزر</th>
-                                        ${scheduleTimes.map(s => `<th class="py-3 px-3 text-center">${s.name}<br><span class="text-[11px] text-emerald-600 font-bold" dir="ltr">الساعة ${s.time}</span></th>`).join('')}
+                                        ${scheduleTimes.map(s => `<th class="py-3 px-2.5 text-center">${s.name}<br><span class="text-[11px] text-jdh-700 font-bold" dir="ltr">الساعة ${s.time}</span></th>`).join('')}
+                                        <th class="py-3 px-3 text-center">منحنى آخر 7 قراءات</th>
                                     </tr>
                                 </thead>
                                 <tbody>${rowsHTML}</tbody>
@@ -1773,14 +2225,18 @@
         }
 
         function saveManagerSettings() {
-            managerConfig = {
-                name: document.getElementById('mgr-name').value.trim() || 'مدير الجودة والعمليات',
-                phone: document.getElementById('mgr-phone').value.trim(),
-                maxDiffThreshold: parseFloat(document.getElementById('mgr-diff-threshold').value) || 3.0,
-                soundEnabled: document.getElementById('mgr-sound-toggle').checked
-            };
-            saveManagerConfigToCloud(managerConfig);
-            showToast('تم حفظ ومزامنة إعدادات المدير والتنبيهات التلقائية', 'success');
+            requireManagerPin('أدخل رمز المدير لحفظ إعدادات المدير ورمز القفل:', () => {
+                const newPin = document.getElementById('mgr-pin').value.trim();
+                managerConfig = {
+                    name: document.getElementById('mgr-name').value.trim() || 'مدير الجودة والعمليات',
+                    phone: document.getElementById('mgr-phone').value.trim(),
+                    maxDiffThreshold: parseFloat(document.getElementById('mgr-diff-threshold').value) || 3.0,
+                    soundEnabled: document.getElementById('mgr-sound-toggle').checked,
+                    pin: newPin.length >= 4 ? newPin : (managerConfig.pin || '102030')
+                };
+                saveManagerConfigToCloud(managerConfig);
+                showToast('تم حفظ ومزامنة إعدادات المدير بنجاح', 'success');
+            });
         }
 
         function renderManageUnits() {
@@ -1788,14 +2244,14 @@
             container.innerHTML = units.map(unit => {
                 const rangeText = unit.type === 'freezer' ? `≤ ${unit.maxTemp}°C` : `${unit.minTemp}°C إلى ${unit.maxTemp}°C`;
                 return `
-                    <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between gap-4">
+                    <div class="bg-white p-4 rounded-2xl border border-jdh-200/70 shadow-sm flex items-center justify-between gap-4">
                         <div class="flex items-start gap-3">
                             <div class="w-11 h-11 rounded-xl ${unit.type === 'freezer' ? 'bg-indigo-50 text-indigo-600' : 'bg-sky-50 text-sky-600'} flex items-center justify-center shrink-0 mt-0.5">
                                 <i data-lucide="${unit.type === 'freezer' ? 'snowflake' : 'thermometer'}" class="w-5 h-5"></i>
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <span class="text-xs font-extrabold text-slate-400">${unit.id}</span>
+                                    <span class="text-xs font-extrabold text-jdh-700">${unit.id}</span>
                                     <h3 class="font-extrabold text-slate-900 text-sm sm:text-base">${unit.name}</h3>
                                 </div>
                                 <p class="text-xs text-slate-500 mt-0.5"><strong class="text-slate-700">${unit.kitchen}</strong> — ${unit.location}</p>
@@ -1806,10 +2262,10 @@
                             </div>
                         </div>
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <button onclick="openUnitModal('${unit.id}')" class="p-2 text-slate-600 hover:bg-slate-100 rounded-xl transition" title="تعديل">
+                            <button onclick="openUnitModal('${unit.id}')" class="p-2 text-slate-600 hover:bg-jdh-50 hover:text-jdh-800 rounded-xl transition" title="تعديل (محمي برمز المدير)">
                                 <i data-lucide="edit-3" class="w-4 h-4"></i>
                             </button>
-                            <button onclick="deleteUnit('${unit.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition" title="حذف">
+                            <button onclick="deleteUnit('${unit.id}')" class="p-2 text-red-500 hover:bg-red-50 rounded-xl transition" title="حذف (محمي برمز المدير)">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
                         </div>
@@ -1871,6 +2327,7 @@
             document.getElementById('corrective-action-container').classList.add('hidden');
             document.getElementById('live-haccp-feedback').classList.add('hidden');
 
+            renderQuickStaffChips();
             onLogUnitChange(true);
             document.getElementById('log-modal').classList.remove('hidden');
             safeLucideIcons();
@@ -1887,10 +2344,12 @@
 
             const hint = document.getElementById('unit-limit-hint');
             const rangeStr = unit.type === 'freezer' ? `≤ ${unit.maxTemp}°C` : `${unit.minTemp}°C إلى ${unit.maxTemp}°C`;
-            hint.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5 text-emerald-600"></i> <span>الحد الآمن حسب HACCP: <strong dir="ltr" class="text-slate-700">${rangeStr}</strong></span>`;
+            hint.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5 text-jdh-700"></i> <span>الحد الآمن حسب HACCP: <strong dir="ltr" class="text-slate-700">${rangeStr}</strong></span>`;
 
             if (setSuggestedTemp) {
-                const defaultStart = unit.type === 'freezer' ? -19.0 : 2.5;
+                const defaultStart = typeof unit.idealTemp === 'number'
+                    ? unit.idealTemp
+                    : (unit.type === 'freezer' ? -19.0 : 2.5);
                 document.getElementById('log-temp-input').value = defaultStart;
             }
             evaluateLiveTemp();
@@ -1981,6 +2440,7 @@
 
             logs.unshift(newLog);
             lastStaffName = staff;
+            try { localStorage.setItem('jdh_last_staff', staff); } catch (e) {}
             saveLogToCloud(newLog);
 
             if (evalRes.status === 'danger' || evalRes.status === 'warning') {
@@ -2008,40 +2468,47 @@
         }
 
         function deleteLog(logId) {
-            logs = logs.filter(l => l.id !== logId);
-            deleteLogFromCloud(logId);
-            refreshAllViews();
-            showToast('تم حذف القراءة من السجل السحابي', 'info');
+            requireManagerPin('أدخل رمز المدير لحذف هذه القراءة من السجل:', () => {
+                showConfirmModal('تأكيد حذف القراءة', 'هل أنت متأكد من حذف هذه القراءة نهائياً من سجل HACCP السحابي؟', () => {
+                    logs = logs.filter(l => l.id !== logId);
+                    deleteLogFromCloud(logId);
+                    refreshAllViews();
+                    showToast('تم حذف القراءة من السجل السحابي', 'info');
+                });
+            });
         }
 
         // ==========================================
-        // 5. UNIT MANAGEMENT (ADD / EDIT / DELETE)
+        // 5. UNIT MANAGEMENT (ADD / EDIT / DELETE - PROTECTED BY PIN)
         // ==========================================
         function openUnitModal(unitId = null) {
-            const modal = document.getElementById('unit-modal');
-            const title = document.getElementById('unit-modal-title');
-            const kitchensList = [...new Set(units.map(u => u.kitchen))];
-            document.getElementById('kitchens-datalist').innerHTML = kitchensList.map(k => `<option value="${k}">`).join('');
+            const reason = unitId ? 'أدخل رمز المدير لتعديل بيانات البراد:' : 'أدخل رمز المدير لإضافة براد أو مجمد جديد:';
+            requireManagerPin(reason, () => {
+                const modal = document.getElementById('unit-modal');
+                const title = document.getElementById('unit-modal-title');
+                const kitchensList = [...new Set(units.map(u => u.kitchen))];
+                document.getElementById('kitchens-datalist').innerHTML = kitchensList.map(k => `<option value="${k}">`).join('');
 
-            if (unitId) {
-                const u = units.find(item => item.id === unitId);
-                if (!u) return;
-                title.textContent = `تعديل بيانات: ${u.name}`;
-                document.getElementById('edit-unit-id').value = u.id;
-                document.getElementById('unit-name').value = u.name;
-                document.getElementById('unit-kitchen').value = u.kitchen || 'المطبخ الرئيسي';
-                document.getElementById('unit-location').value = u.location;
-                document.getElementById('unit-type').value = u.type;
-                document.getElementById('unit-min').value = u.minTemp;
-                document.getElementById('unit-ideal').value = u.idealTemp;
-                document.getElementById('unit-max').value = u.maxTemp;
-            } else {
-                title.textContent = 'إضافة براد / مجمد جديد';
-                document.getElementById('edit-unit-id').value = '';
-                document.getElementById('unit-form').reset();
-                setDefaultLimitsByType();
-            }
-            modal.classList.remove('hidden');
+                if (unitId) {
+                    const u = units.find(item => item.id === unitId);
+                    if (!u) return;
+                    title.textContent = `تعديل بيانات: ${u.name}`;
+                    document.getElementById('edit-unit-id').value = u.id;
+                    document.getElementById('unit-name').value = u.name;
+                    document.getElementById('unit-kitchen').value = u.kitchen || 'المطبخ الرئيسي';
+                    document.getElementById('unit-location').value = u.location;
+                    document.getElementById('unit-type').value = u.type;
+                    document.getElementById('unit-min').value = u.minTemp;
+                    document.getElementById('unit-ideal').value = u.idealTemp;
+                    document.getElementById('unit-max').value = u.maxTemp;
+                } else {
+                    title.textContent = 'إضافة براد / مجمد جديد';
+                    document.getElementById('edit-unit-id').value = '';
+                    document.getElementById('unit-form').reset();
+                    setDefaultLimitsByType();
+                }
+                modal.classList.remove('hidden');
+            });
         }
 
         function closeUnitModal() {
@@ -2098,24 +2565,30 @@
                 showToast('يجب الإبقاء على وحدة تبريد واحدة على الأقل', 'warning');
                 return;
             }
-            units = units.filter(u => u.id !== unitId);
-            deleteUnitFromCloud(unitId);
-            refreshAllViews();
-            showToast('تم حذف الوحدة من جميع الأجهزة', 'info');
+            const target = units.find(u => u.id === unitId);
+            requireManagerPin('أدخل رمز المدير لحذف هذا البراد:', () => {
+                showConfirmModal('تأكيد حذف الوحدة', `هل أنت متأكد من حذف "${target ? target.name : unitId}" نهائياً من النظام؟`, () => {
+                    units = units.filter(u => u.id !== unitId);
+                    deleteUnitFromCloud(unitId);
+                    refreshAllViews();
+                    showToast('تم حذف الوحدة من جميع الأجهزة', 'info');
+                });
+            });
         }
 
         // ==========================================
-        // 6. EXPORT CSV & PRINT REPORTS / QR STICKERS
+        // 6. EXPORT CSV & PRINT REPORTS / QR STICKERS (JULIA DOMNA HOTEL BRANDED)
         // ==========================================
         function exportToCSV() {
-            const headers = ['التاريخ والوقت', 'رمز الوحدة', 'اسم البراد / المجمد', 'النوع', 'الفترة', 'درجة الحرارة (°C)', 'حالة HACCP', 'الإجراء التصحيحي', 'المسؤول', 'ملاحظات'];
+            const headers = ['التاريخ والوقت', 'رمز الوحدة', 'اسم البراد / المجمد', 'المطبخ', 'النوع', 'الفترة', 'درجة الحرارة (°C)', 'حالة HACCP', 'الإجراء التصحيحي', 'المسؤول', 'ملاحظات'];
             const rows = logs.map(log => {
-                const unit = units.find(u => u.id === log.unitId) || { name: 'غير معروف', type: 'chiller', minTemp: 0, maxTemp: 4 };
+                const unit = units.find(u => u.id === log.unitId) || { name: 'غير معروف', kitchen: '-', type: 'chiller', minTemp: 0, maxTemp: 4 };
                 const evalRes = evaluateTemperature(log.temp, unit);
                 return [
                     (log.timestamp || '').replace('T', ' '),
                     log.unitId,
                     `"${unit.name}"`,
+                    `"${unit.kitchen}"`,
                     unit.type === 'freezer' ? 'مجمد' : 'براد تبريد',
                     log.shift,
                     log.temp,
@@ -2131,7 +2604,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `HACCP_Temperature_Log_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = `JuliaDomna_HACCP_Log_${new Date().toISOString().split('T')[0]}.csv`;
             link.click();
             URL.revokeObjectURL(url);
             showToast('تم تصدير ملف Excel (CSV) بنجاح', 'success');
@@ -2142,12 +2615,13 @@
             const today = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
 
             const tableRows = logs.slice().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')).map(log => {
-                const unit = units.find(u => u.id === log.unitId) || { name: 'غير معروف', type: 'chiller', minTemp: 0, maxTemp: 4 };
+                const unit = units.find(u => u.id === log.unitId) || { name: 'غير معروف', kitchen: '-', type: 'chiller', minTemp: 0, maxTemp: 4 };
                 const evalRes = evaluateTemperature(log.temp, unit);
                 return `
                     <tr>
                         <td style="border:1px solid #cbd5e1; padding:6px;">${(log.timestamp || '').replace('T', ' ')}</td>
                         <td style="border:1px solid #cbd5e1; padding:6px; font-weight:bold;">${unit.name} (${unit.id})</td>
+                        <td style="border:1px solid #cbd5e1; padding:6px;">${unit.kitchen}</td>
                         <td style="border:1px solid #cbd5e1; padding:6px;">${log.shift}</td>
                         <td style="border:1px solid #cbd5e1; padding:6px; font-weight:bold; direction:ltr; text-align:center;">${log.temp}°C</td>
                         <td style="border:1px solid #cbd5e1; padding:6px;">${evalRes.label}</td>
@@ -2158,11 +2632,12 @@
             }).join('');
 
             printArea.innerHTML = `
-                <div dir="rtl" style="font-family: 'Cairo', sans-serif; color: #0f172a;">
-                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #0f172a; padding-bottom:12px; margin-bottom:16px;">
+                <div dir="rtl" style="font-family: 'Cairo', sans-serif; color: #1e293b;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #6e112c; padding-bottom:12px; margin-bottom:16px;">
                         <div>
-                            <h1 style="font-size:20px; font-weight:800; margin:0;">نموذج مراقبة درجات حرارة البرادات والمجمدات (HACCP)</h1>
-                            <p style="font-size:12px; color:#475569; margin:4px 0 0 0;">سجل الرقابة الصحية وسلامة الغذاء - الحدود المعتمدة: التبريد (0°C إلى 4°C) | التجميد (-18°C أو أقل)</p>
+                            <div style="font-size:13px; font-weight:800; color:#6e112c;">${HOTEL_NAME_AR} | ${HOTEL_NAME_EN}</div>
+                            <h1 style="font-size:19px; font-weight:900; margin:2px 0 0 0; color:#350513;">نموذج مراقبة درجات حرارة البرادات والمجمدات (HACCP)</h1>
+                            <p style="font-size:11px; color:#475569; margin:4px 0 0 0;">سجل الرقابة الصحية وسلامة الغذاء - الحدود المعتمدة: التبريد (0°C إلى 4°C) | التجميد (-18°C أو أقل)</p>
                         </div>
                         <div style="text-align:left; font-size:12px;">
                             <div><strong>تاريخ الطباعة:</strong> ${today}</div>
@@ -2171,9 +2646,10 @@
                     </div>
                     <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:right;">
                         <thead>
-                            <tr style="background:#f1f5f9;">
+                            <tr style="background:#fdf2f4; color:#530b20;">
                                 <th style="border:1px solid #cbd5e1; padding:8px;">التاريخ والوقت</th>
                                 <th style="border:1px solid #cbd5e1; padding:8px;">البراد / المجمد</th>
+                                <th style="border:1px solid #cbd5e1; padding:8px;">المطبخ</th>
                                 <th style="border:1px solid #cbd5e1; padding:8px;">الفترة</th>
                                 <th style="border:1px solid #cbd5e1; padding:8px;">الحرارة</th>
                                 <th style="border:1px solid #cbd5e1; padding:8px;">التقييم</th>
@@ -2183,9 +2659,9 @@
                         </thead>
                         <tbody>${tableRows}</tbody>
                     </table>
-                    <div style="margin-top:30px; display:flex; justify-content:space-between; font-size:12px; font-weight:bold;">
+                    <div style="margin-top:30px; display:flex; justify-content:space-between; font-size:12px; font-weight:bold; color:#530b20;">
                         <div>توقيع الشيف التنفيذي: ______________________</div>
-                        <div>اعتماد مشرف الجودة وسلامة الغذاء: ______________________</div>
+                        <div>اعتماد إدارة الجودة — ${HOTEL_NAME_AR}: ______________________</div>
                     </div>
                 </div>
             `;
@@ -2196,30 +2672,30 @@
 
         function printQRStickers() {
             const printArea = document.getElementById('print-area');
-            const mode = document.getElementById('qr-mode-select')?.value || 'full_data';
+            const mode = document.getElementById('qr-mode-select')?.value || 'scan_link';
 
             printArea.innerHTML = `
                 <div dir="rtl" style="font-family: 'Cairo', sans-serif;">
-                    <h2 style="text-align:center; font-size:18px; font-weight:800; margin-bottom:16px;">ملصقات QR Code لمراقبة درجات حرارة البرادات والمجمدات (HACCP)</h2>
+                    <div style="text-align:center; border-bottom:2px solid #6e112c; padding-bottom:8px; margin-bottom:16px;">
+                        <div style="font-size:13px; font-weight:800; color:#6e112c;">${HOTEL_NAME_AR} | ${HOTEL_NAME_EN}</div>
+                        <h2 style="font-size:17px; font-weight:900; margin:2px 0 0 0; color:#350513;">ملصقات QR Code لمراقبة درجات حرارة البرادات والمجمدات (HACCP)</h2>
+                    </div>
                     <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
                         ${units.map(u => {
                             const latest = logs.filter(l => l.unitId === u.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))[0];
-                            const dt = latest ? new Date(latest.timestamp) : null;
-                            const dateStr = dt ? dt.toLocaleDateString('ar-EG') : '—';
-                            const timeStr = dt ? dt.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }) : '—';
+                            const rangeStr = u.type === 'freezer' ? `≤ ${u.maxTemp}°C` : `${u.minTemp}°C إلى ${u.maxTemp}°C`;
                             return `
-                                <div style="border:2px solid #0f172a; border-radius:16px; padding:14px; text-align:center; page-break-inside:avoid;">
-                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                        <span style="font-size:11px; font-weight:800; background:#0f172a; color:white; padding:2px 8px; border-radius:6px;">${u.id}</span>
-                                        <span style="font-size:11px; font-weight:800; color:#15803d;">المثالية: <span dir="ltr">${u.idealTemp}°C</span></span>
+                                <div style="border:2px solid #6e112c; border-radius:16px; padding:14px; text-align:center; page-break-inside:avoid;">
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; border-bottom:1px solid #f8cfd8; padding-bottom:6px;">
+                                        <span style="font-size:11px; font-weight:800; background:#6e112c; color:#f3d57a; padding:2px 8px; border-radius:6px;">${u.id}</span>
+                                        <span style="font-size:11px; font-weight:800; color:#6e112c;">${HOTEL_NAME_AR}</span>
                                     </div>
-                                    <h3 style="font-size:15px; font-weight:800; margin:4px 0;">${u.name}</h3>
+                                    <h3 style="font-size:15px; font-weight:900; margin:4px 0; color:#1e293b;">${u.name}</h3>
                                     <p style="font-size:11px; color:#475569; margin:0 0 8px 0;">${u.kitchen} — ${u.location}</p>
                                     <div id="print-qr-${u.id}" style="display:flex; justify-content:center; margin:8px 0;"></div>
-                                    <div style="text-align:right; font-size:11px; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:6px 8px; margin-top:8px;">
-                                        <div><strong>آخر قراءة:</strong> <span dir="ltr">${latest ? latest.temp + '°C' : 'غير مسجلة'}</span></div>
-                                        <div><strong>اسم القارئ:</strong> ${latest ? latest.staff : '—'}</div>
-                                        <div><strong>التاريخ والوقت:</strong> ${dateStr} | ${timeStr}</div>
+                                    <div style="text-align:center; font-size:11px; background:#fdf2f4; border:1px solid #f8cfd8; border-radius:8px; padding:6px 8px; margin-top:8px; color:#530b20;">
+                                        <div><strong>المثالية:</strong> <span dir="ltr">${u.idealTemp}°C</span> &nbsp;|&nbsp; <strong>الحد الآمن:</strong> <span dir="ltr">${rangeStr}</span></div>
+                                        <div style="font-size:10px; color:#64748b; margin-top:2px;">امسح الكود بالكاميرا لتسجيل درجة الحرارة فوراً</div>
                                     </div>
                                 </div>
                             `;
@@ -2249,8 +2725,8 @@
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            const bgClass = type === 'success' ? 'bg-slate-900 border-emerald-500 text-white' :
-                            type === 'warning' ? 'bg-red-900 border-red-400 text-white' : 'bg-slate-800 border-slate-600 text-white';
+            const bgClass = type === 'success' ? 'bg-jdh-900 border-emerald-400 text-white' :
+                            type === 'warning' ? 'bg-red-900 border-red-400 text-white' : 'bg-jdh-800 border-gold-400 text-white';
 
             toast.className = `pointer-events-auto border-r-4 ${bgClass} px-4 py-3 rounded-xl shadow-xl text-xs sm:text-sm font-bold flex items-center justify-between gap-3 transition-all duration-300`;
             toast.innerHTML = `<span>${message}</span>`;
@@ -2285,10 +2761,12 @@
             renderUnitsStatusGrid();
             populateFilterDropdowns();
             renderLogsTable();
+            renderStaffManageChips();
             renderScheduleSettings();
             renderManageUnits();
             renderManagerDashboard();
             updateNotificationBadges();
+            updateManagerLockUI();
             if (!document.getElementById('view-qr').classList.contains('hidden')) {
                 renderQRCards();
             }
@@ -2297,6 +2775,11 @@
 
         // Expose all handlers to global window scope for HTML onclick/onchange events
         Object.assign(window, {
+            toggleManagerLock,
+            closePinModal,
+            handlePinSubmit,
+            closeConfirmModal,
+            executeConfirmAction,
             openNotificationsModal,
             closeNotificationsModal,
             markAlertRead,
@@ -2316,6 +2799,9 @@
             exportToCSV,
             printHACCPLog,
             printQRStickers,
+            handleAddStaff,
+            removeStaffName,
+            selectQuickStaff,
             saveScheduleSettings,
             openUnitModal,
             closeUnitModal,
@@ -2323,9 +2809,11 @@
             handleUnitSubmit,
             deleteUnit,
             runMissedReadingsCheck,
+            sendDailyWhatsAppSummary,
             saveManagerSettings,
             renderManagerDashboard,
-            setKitchenFilter
+            setKitchenFilter,
+            setDashboardKitchenFilter
         });
 
         function bootApp() {
@@ -2336,16 +2824,17 @@
                 });
             }
 
-            // Render initial UI immediately, then attach cloud sync
-            refreshAllViews();
-            initCloudSync();
-
-            // Check if opened via QR Code URL parameter (?unit=FRG-01)
+            // Capture scanned QR parameter (?unit=...) and wait for cloud units before opening modal
             const urlParams = new URLSearchParams(window.location.search);
             const scannedUnitId = urlParams.get('unit');
             if (scannedUnitId) {
-                openLogModal(scannedUnitId, true);
+                pendingScannedUnitId = scannedUnitId;
+                showToast('جاري تحميل بيانات البراد الممسوح...', 'info');
             }
+
+            // Render initial UI immediately, then attach cloud sync
+            refreshAllViews();
+            initCloudSync();
         }
 
         if (document.readyState === 'loading') {
