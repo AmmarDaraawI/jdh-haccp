@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -166,9 +165,9 @@
                 <i data-lucide="lock" id="tab-manager-lock-icon" class="w-4 h-4 text-jdh-700"></i>
                 <span>لوحة المدير والمطابخ</span>
             </button>
-            <button onclick="switchTab('logs')" id="tab-logs" class="tab-btn flex-1 min-w-[130px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
-                <i data-lucide="clipboard-list" class="w-4 h-4"></i>
-                <span>سجل القراءات</span>
+            <button onclick="switchTab('logs')" id="tab-logs" class="tab-btn flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
+                <i data-lucide="calendar-days" class="w-4 h-4"></i>
+                <span>السجل الشهري</span>
             </button>
             <button onclick="switchTab('qr')" id="tab-qr" class="tab-btn flex-1 min-w-[140px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
                 <i data-lucide="qr-code" class="w-4 h-4"></i>
@@ -209,29 +208,43 @@
             </div>
         </div>
 
-        <!-- TAB 2: Official HACCP Log Table -->
+        <!-- TAB 2: Official Monthly HACCP Log Table -->
         <div id="view-logs" class="hidden space-y-4">
             <!-- Toolbar & Filters -->
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-jdh-200/70 space-y-4">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+                <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
                     <div>
-                        <h2 class="font-extrabold text-lg text-jdh-950">جدول مراقبة درجات الحرارة اليومي (نموذج التفتيش)</h2>
-                        <p class="text-xs text-slate-500">سجل معتمد لفندق جوليا دومنا لمتابعة الفترات اليومية والإجراءات التصحيحية</p>
+                        <h2 class="font-extrabold text-lg text-jdh-950">السجل الشهري لدرجات الحرارة (نموذج التفتيش HACCP)</h2>
+                        <p class="text-xs text-slate-500">تصفح القراءات شهراً بشهر، صدّر تقرير الشهر للتفتيش الصحي، أو نظّف السجل القديم</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2">
                         <button onclick="exportToCSV()" class="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 transition">
                             <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
-                            <span>تصدير Excel (CSV)</span>
+                            <span>تصدير الشهر Excel</span>
                         </button>
                         <button onclick="printHACCPLog()" class="bg-jdh-800 hover:bg-jdh-700 text-white font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 transition shadow-sm">
                             <i data-lucide="printer" class="w-4 h-4 text-gold-300"></i>
-                            <span>طباعة تقرير HACCP</span>
+                            <span>طباعة تقرير الشهر</span>
+                        </button>
+                        <button onclick="openClearLogsModal()" class="bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-xl flex items-center gap-2 transition">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <span>مسح السجل القديم</span>
                         </button>
                     </div>
                 </div>
 
-                <!-- Filters Row -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+                <!-- Monthly Summary Bar -->
+                <div id="monthly-summary-strip" class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-jdh-50/70 border border-jdh-200/70 p-3 rounded-xl">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- Filters Row (Month Selector + Search + Unit + Shift + Status) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 pt-2 border-t border-slate-100">
+                    <div class="relative">
+                        <select id="filter-month" onchange="onMonthFilterChange()" class="w-full px-3 py-2 bg-jdh-50 border-2 border-jdh-300 text-jdh-950 font-extrabold rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
+                            <!-- Populated dynamically with available months -->
+                        </select>
+                    </div>
                     <div class="relative">
                         <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute right-3 top-3"></i>
                         <input type="text" id="filter-search" oninput="renderLogsTable()" placeholder="بحث باسم البراد أو الشيف..." class="w-full pr-9 pl-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-jdh-600">
@@ -274,7 +287,7 @@
                 </div>
                 <div id="empty-logs-msg" class="hidden py-12 text-center text-slate-400">
                     <i data-lucide="inbox" class="w-12 h-12 mx-auto mb-2 opacity-40"></i>
-                    <p class="font-bold">لا توجد سجلات مطابقة لمعايير البحث</p>
+                    <p class="font-bold">لا توجد سجلات في هذا الشهر أو مطابقة لمعايير البحث</p>
                 </div>
             </div>
         </div>
@@ -392,6 +405,10 @@
                         <button onclick="runMissedReadingsCheck(true)" class="bg-gold-500 hover:bg-gold-400 text-jdh-950 font-extrabold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition">
                             <i data-lucide="radar" class="w-4 h-4"></i>
                             <span>فحص المتأخرات</span>
+                        </button>
+                        <button onclick="openClearLogsModal()" class="bg-red-600/90 hover:bg-red-500 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition border border-red-400/30">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <span>مسح السجل القديم</span>
                         </button>
                         <button onclick="openNotificationsModal()" class="bg-jdh-950/60 hover:bg-jdh-900 border border-white/20 text-white font-bold text-xs px-3.5 py-2.5 rounded-xl flex items-center gap-1.5 transition">
                             <i data-lucide="bell-ring" class="w-4 h-4 text-red-400"></i>
@@ -702,6 +719,57 @@
     </div>
 
     <!-- ===================================================================== -->
+    <!-- MODAL 6: Clear Old / Monthly Logs Manager Modal                       -->
+    <!-- ===================================================================== -->
+    <div id="clear-logs-modal" class="fixed inset-0 bg-jdh-950/75 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl overflow-hidden">
+            <div class="jdh-header-gradient text-white px-5 py-4 flex items-center justify-between border-b border-gold-500/40">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-red-300"></i>
+                    <h3 class="font-extrabold text-base">تنظيف ومسح السجل القديم</h3>
+                </div>
+                <button onclick="closeClearLogsModal()" class="text-jdh-200 hover:text-white p-1 rounded-xl">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-5 space-y-3">
+                <p class="text-xs text-slate-600 leading-relaxed">اختر نطاق القراءات التي تريد حذفها نهائياً من قاعدة البيانات السحابية (يُفضل تصدير Excel أولاً للأرشفة):</p>
+
+                <!-- Option 1: Older months only -->
+                <button type="button" onclick="requestBulkClear('previous_months')" class="w-full text-right p-3.5 rounded-2xl border border-amber-200 bg-amber-50/70 hover:bg-amber-100/80 transition flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-extrabold text-sm text-amber-950">مسح الأشهر السابقة فقط</div>
+                        <div class="text-[11px] text-amber-800 mt-0.5">يحذف كل السجل القديم ويُبقي قراءات الشهر الحالي فقط</div>
+                    </div>
+                    <span id="clear-count-prev" class="px-2.5 py-1 rounded-xl bg-white border border-amber-200 text-xs font-extrabold text-amber-900 shrink-0">0</span>
+                </button>
+
+                <!-- Option 2: Currently selected month -->
+                <button type="button" onclick="requestBulkClear('selected_month')" id="clear-btn-selected-month" class="w-full text-right p-3.5 rounded-2xl border border-jdh-200 bg-jdh-50/70 hover:bg-jdh-100/80 transition flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-extrabold text-sm text-jdh-950" id="clear-selected-month-label">مسح سجل الشهر المحدد فقط</div>
+                        <div class="text-[11px] text-jdh-800 mt-0.5">يحذف قراءات الشهر المعروض حالياً في الجدول</div>
+                    </div>
+                    <span id="clear-count-selected" class="px-2.5 py-1 rounded-xl bg-white border border-jdh-200 text-xs font-extrabold text-jdh-900 shrink-0">0</span>
+                </button>
+
+                <!-- Option 3: Clear ALL logs -->
+                <button type="button" onclick="requestBulkClear('all_logs')" class="w-full text-right p-3.5 rounded-2xl border border-red-200 bg-red-50/80 hover:bg-red-100 transition flex items-center justify-between gap-3">
+                    <div>
+                        <div class="font-extrabold text-sm text-red-900">مسح كل السجل بالكامل (تصفير)</div>
+                        <div class="text-[11px] text-red-700 mt-0.5">يحذف جميع القراءات المسجلة (مثالي بعد انتهاء الاختبار)</div>
+                    </div>
+                    <span id="clear-count-all" class="px-2.5 py-1 rounded-xl bg-white border border-red-200 text-xs font-extrabold text-red-700 shrink-0">0</span>
+                </button>
+
+                <div class="pt-2">
+                    <button type="button" onclick="closeClearLogsModal()" class="w-full py-2.5 rounded-xl font-bold text-sm text-slate-600 bg-slate-100 hover:bg-slate-200">إغلاق</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
     <!-- HIDDEN PRINT AREA (For Health Inspection Report & QR Stickers)        -->
     <!-- ===================================================================== -->
     <div id="print-area" class="hidden"></div>
@@ -761,6 +829,22 @@
         let lastStaffName = localStorage.getItem('jdh_last_staff') || '';
         let pendingScannedUnitId = null;
         let currentActiveTab = 'dashboard';
+
+        // Monthly filter state (defaults to current YYYY-MM)
+        function getCurrentMonthKey() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+        }
+        let selectedMonthKey = getCurrentMonthKey();
+
+        function formatMonthKeyArabic(ym) {
+            if (ym === 'all') return 'جميع الأشهر';
+            const [y, m] = ym.split('-').map(Number);
+            if (!y || !m) return ym;
+            const d = new Date(y, m - 1, 1);
+            const label = d.toLocaleDateString('ar-EG', { month: 'long', year: 'numeric' });
+            return ym === getCurrentMonthKey() ? `${label} (الشهر الحالي)` : label;
+        }
 
         // Manager PIN session state
         let isManagerUnlocked = false;
@@ -996,7 +1080,6 @@
                 await deleteDoc(getPublicDoc('logs', logId));
             } catch (err) {
                 console.error('Error deleting log:', err);
-                showToast('تعذر حذف القراءة من السحابة', 'warning');
             }
         }
 
@@ -1498,6 +1581,81 @@
         }
 
         // ==========================================
+        // 1.9 BULK CLEAR OLD LOGS (PROTECTED BY PIN)
+        // ==========================================
+        function openClearLogsModal() {
+            requireManagerPin('أدخل رمز المدير للوصول إلى خيارات مسح السجل القديم:', () => {
+                const curMonth = getCurrentMonthKey();
+                const prevLogsCount = logs.filter(l => (l.timestamp || '').slice(0, 7) < curMonth).length;
+                const selectedMonthCount = selectedMonthKey === 'all'
+                    ? logs.length
+                    : logs.filter(l => (l.timestamp || '').startsWith(selectedMonthKey)).length;
+
+                document.getElementById('clear-count-prev').textContent = `${prevLogsCount} قراءة`;
+                document.getElementById('clear-count-selected').textContent = `${selectedMonthCount} قراءة`;
+                document.getElementById('clear-count-all').textContent = `${logs.length} قراءة`;
+
+                const selBtn = document.getElementById('clear-btn-selected-month');
+                const selLabel = document.getElementById('clear-selected-month-label');
+                if (selectedMonthKey === 'all') {
+                    selBtn.classList.add('hidden');
+                } else {
+                    selBtn.classList.remove('hidden');
+                    selLabel.textContent = `مسح سجل (${formatMonthKeyArabic(selectedMonthKey)}) فقط`;
+                }
+
+                document.getElementById('clear-logs-modal').classList.remove('hidden');
+                safeLucideIcons();
+            });
+        }
+
+        function closeClearLogsModal() {
+            document.getElementById('clear-logs-modal').classList.add('hidden');
+        }
+
+        function requestBulkClear(mode) {
+            const curMonth = getCurrentMonthKey();
+            let targetLogs = [];
+            let title = '';
+            let desc = '';
+
+            if (mode === 'previous_months') {
+                targetLogs = logs.filter(l => (l.timestamp || '').slice(0, 7) < curMonth);
+                title = 'مسح سجل الأشهر السابقة';
+                desc = `سيتم حذف (${targetLogs.length}) قراءة من الأشهر السابقة نهائياً، مع الاحتفاظ بجميع قراءات الشهر الحالي. هل تريد المتابعة؟`;
+            } else if (mode === 'selected_month') {
+                targetLogs = logs.filter(l => (l.timestamp || '').startsWith(selectedMonthKey));
+                title = `مسح سجل ${formatMonthKeyArabic(selectedMonthKey)}`;
+                desc = `سيتم حذف (${targetLogs.length}) قراءة من هذا الشهر نهائياً من السحابة. هل أنت متأكد؟`;
+            } else {
+                targetLogs = [...logs];
+                title = 'تصفير السجل بالكامل';
+                desc = `تحذير: سيتم حذف جميع القراءات المسجلة (${targetLogs.length} قراءة) نهائياً من قاعدة البيانات السحابية. هل أنت متأكد؟`;
+            }
+
+            if (targetLogs.length === 0) {
+                showToast('لا توجد قراءات في هذا النطاق لحذفها', 'info');
+                return;
+            }
+
+            closeClearLogsModal();
+            showConfirmModal(title, desc, async () => {
+                const idsToDelete = new Set(targetLogs.map(l => l.id));
+                logs = logs.filter(l => !idsToDelete.has(l.id));
+                refreshAllViews();
+                showToast(`جاري مسح ${targetLogs.length} قراءة من السحابة...`, 'info');
+
+                try {
+                    await Promise.all(targetLogs.map(l => deleteLogFromCloud(l.id)));
+                    showToast(`✅ تم مسح ${targetLogs.length} قراءة بنجاح`, 'success');
+                } catch (err) {
+                    console.error('Bulk clear error:', err);
+                    showToast('حدث خطأ أثناء حذف بعض القراءات من السحابة', 'warning');
+                }
+            });
+        }
+
+        // ==========================================
         // 2. HACCP TEMPERATURE EVALUATION ENGINE & TREND SPARKLINE
         // ==========================================
         function evaluateTemperature(temp, unit) {
@@ -1824,20 +1982,25 @@
             }).join('');
         }
 
-        function renderLogsTable() {
-            const tbody = document.getElementById('logs-table-body');
-            const emptyMsg = document.getElementById('empty-logs-msg');
-            if (!tbody) return;
+        function onMonthFilterChange() {
+            const sel = document.getElementById('filter-month');
+            if (sel) selectedMonthKey = sel.value;
+            renderLogsTable();
+        }
 
+        function getFilteredLogsList() {
             const searchVal = (document.getElementById('filter-search')?.value || '').trim().toLowerCase();
             const unitFilter = document.getElementById('filter-unit')?.value || 'all';
             const shiftFilter = document.getElementById('filter-shift')?.value || 'all';
             const statusFilter = document.getElementById('filter-status')?.value || 'all';
+            const monthFilter = selectedMonthKey || 'all';
 
-            const filtered = logs
+            return logs
                 .slice()
                 .sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))
                 .filter(log => {
+                    if (monthFilter !== 'all' && !(log.timestamp || '').startsWith(monthFilter)) return false;
+
                     const unit = units.find(u => u.id === log.unitId) || { name: 'وحدة محذوفة', kitchen: '', id: log.unitId };
                     const evalRes = evaluateTemperature(log.temp, unit);
                     const currentStatus = log.status || evalRes.status;
@@ -1851,6 +2014,44 @@
                     }
                     return true;
                 });
+        }
+
+        function renderLogsTable() {
+            const tbody = document.getElementById('logs-table-body');
+            const emptyMsg = document.getElementById('empty-logs-msg');
+            const summaryStrip = document.getElementById('monthly-summary-strip');
+            if (!tbody) return;
+
+            const filtered = getFilteredLogsList();
+
+            // Render Monthly Summary Strip
+            if (summaryStrip) {
+                const monthLogs = selectedMonthKey === 'all'
+                    ? logs
+                    : logs.filter(l => (l.timestamp || '').startsWith(selectedMonthKey));
+                const safeCount = monthLogs.filter(l => l.status === 'safe').length;
+                const issuesCount = monthLogs.filter(l => l.status !== 'safe').length;
+                const pct = monthLogs.length > 0 ? Math.round((safeCount / monthLogs.length) * 100) : 100;
+
+                summaryStrip.innerHTML = `
+                    <div class="bg-white rounded-xl p-2.5 border border-jdh-100">
+                        <div class="text-[11px] text-slate-500 font-bold">الشهر المعروض</div>
+                        <div class="text-xs sm:text-sm font-extrabold text-jdh-900 mt-0.5 truncate">${formatMonthKeyArabic(selectedMonthKey)}</div>
+                    </div>
+                    <div class="bg-white rounded-xl p-2.5 border border-jdh-100">
+                        <div class="text-[11px] text-slate-500 font-bold">إجمالي قراءات الشهر</div>
+                        <div class="text-sm sm:text-base font-extrabold text-slate-900 mt-0.5">${monthLogs.length} <span class="text-[11px] text-slate-400 font-semibold">قراءة</span></div>
+                    </div>
+                    <div class="bg-white rounded-xl p-2.5 border border-jdh-100">
+                        <div class="text-[11px] text-slate-500 font-bold">نسبة الالتزام الشهري</div>
+                        <div class="text-sm sm:text-base font-extrabold text-emerald-600 mt-0.5">${pct}%</div>
+                    </div>
+                    <div class="bg-white rounded-xl p-2.5 border border-jdh-100">
+                        <div class="text-[11px] text-slate-500 font-bold">مخالفات / تحذيرات الشهر</div>
+                        <div class="text-sm sm:text-base font-extrabold ${issuesCount > 0 ? 'text-red-600' : 'text-slate-800'} mt-0.5">${issuesCount}</div>
+                    </div>
+                `;
+            }
 
             if (filtered.length === 0) {
                 tbody.innerHTML = '';
@@ -2614,11 +2815,16 @@
         }
 
         // ==========================================
-        // 6. EXPORT CSV & PRINT REPORTS / QR STICKERS (JULIA DOMNA HOTEL BRANDED)
+        // 6. EXPORT CSV & PRINT REPORTS (MONTHLY-AWARE & BRANDED)
         // ==========================================
         function exportToCSV() {
+            const targetLogs = getFilteredLogsList();
+            if (targetLogs.length === 0) {
+                showToast('لا توجد قراءات في الشهر المحدد لتصديرها', 'warning');
+                return;
+            }
             const headers = ['التاريخ والوقت', 'رمز الوحدة', 'اسم البراد / المجمد', 'المطبخ', 'النوع', 'الفترة', 'درجة الحرارة (°C)', 'حالة HACCP', 'الإجراء التصحيحي', 'المسؤول', 'ملاحظات'];
-            const rows = logs.map(log => {
+            const rows = targetLogs.map(log => {
                 const unit = units.find(u => u.id === log.unitId) || { name: 'غير معروف', kitchen: '-', type: 'chiller', minTemp: 0, maxTemp: 4 };
                 const evalRes = evaluateTemperature(log.temp, unit);
                 return [
@@ -2636,22 +2842,25 @@
                 ].join(',');
             });
 
+            const fileSuffix = selectedMonthKey === 'all' ? 'AllMonths' : selectedMonthKey;
             const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `JuliaDomna_HACCP_Log_${new Date().toISOString().split('T')[0]}.csv`;
+            link.download = `JuliaDomna_HACCP_${fileSuffix}.csv`;
             link.click();
             URL.revokeObjectURL(url);
-            showToast('تم تصدير ملف Excel (CSV) بنجاح', 'success');
+            showToast(`تم تصدير ملف Excel لـ (${formatMonthKeyArabic(selectedMonthKey)}) بنجاح`, 'success');
         }
 
         function printHACCPLog() {
+            const targetLogs = getFilteredLogsList();
             const printArea = document.getElementById('print-area');
             const today = new Date().toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const monthTitle = formatMonthKeyArabic(selectedMonthKey);
 
-            const tableRows = logs.slice().sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || '')).map(log => {
+            const tableRows = targetLogs.map(log => {
                 const unit = units.find(u => u.id === log.unitId) || { name: 'غير معروف', kitchen: '-', type: 'chiller', minTemp: 0, maxTemp: 4 };
                 const evalRes = evaluateTemperature(log.temp, unit);
                 return `
@@ -2673,12 +2882,12 @@
                     <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #6e112c; padding-bottom:12px; margin-bottom:16px;">
                         <div>
                             <div style="font-size:13px; font-weight:800; color:#6e112c;">${HOTEL_NAME_AR} | ${HOTEL_NAME_EN}</div>
-                            <h1 style="font-size:19px; font-weight:900; margin:2px 0 0 0; color:#350513;">نموذج مراقبة درجات حرارة البرادات والمجمدات (HACCP)</h1>
+                            <h1 style="font-size:18px; font-weight:900; margin:2px 0 0 0; color:#350513;">السجل الشهري لمراقبة البرادات والمجمدات (HACCP) — ${monthTitle}</h1>
                             <p style="font-size:11px; color:#475569; margin:4px 0 0 0;">سجل الرقابة الصحية وسلامة الغذاء - الحدود المعتمدة: التبريد (0°C إلى 4°C) | التجميد (-18°C أو أقل)</p>
                         </div>
                         <div style="text-align:left; font-size:12px;">
                             <div><strong>تاريخ الطباعة:</strong> ${today}</div>
-                            <div><strong>عدد السجلات:</strong> ${logs.length}</div>
+                            <div><strong>عدد السجلات:</strong> ${targetLogs.length}</div>
                         </div>
                     </div>
                     <table style="width:100%; border-collapse:collapse; font-size:11px; text-align:right;">
@@ -2719,7 +2928,6 @@
                     </div>
                     <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:16px;">
                         ${units.map(u => {
-                            const latest = logs.filter(l => l.unitId === u.id).sort((a, b) => (b.timestamp || '').localeCompare(a.timestamp || ''))[0];
                             const rangeStr = u.type === 'freezer' ? `≤ ${u.maxTemp}°C` : `${u.minTemp}°C إلى ${u.maxTemp}°C`;
                             return `
                                 <div style="border:2px solid #6e112c; border-radius:16px; padding:14px; text-align:center; page-break-inside:avoid;">
@@ -2776,6 +2984,26 @@
         }
 
         function populateFilterDropdowns() {
+            // 1. Month dropdown (always includes current month + all months found in logs + "all")
+            const filterMonth = document.getElementById('filter-month');
+            if (filterMonth) {
+                const monthSet = new Set([getCurrentMonthKey()]);
+                logs.forEach(l => {
+                    if (l.timestamp && l.timestamp.length >= 7) {
+                        monthSet.add(l.timestamp.slice(0, 7));
+                    }
+                });
+                const sortedMonths = Array.from(monthSet).sort((a, b) => b.localeCompare(a));
+                if (selectedMonthKey !== 'all' && !monthSet.has(selectedMonthKey)) {
+                    selectedMonthKey = getCurrentMonthKey();
+                }
+
+                filterMonth.innerHTML = sortedMonths.map(ym => `<option value="${ym}">📅 ${formatMonthKeyArabic(ym)}</option>`).join('') +
+                    `<option value="all">📂 جميع الأشهر (${logs.length})</option>`;
+                filterMonth.value = selectedMonthKey;
+            }
+
+            // 2. Unit dropdown
             const filterUnit = document.getElementById('filter-unit');
             if (filterUnit) {
                 const currentVal = filterUnit.value;
@@ -2784,6 +3012,7 @@
                 filterUnit.value = currentVal || 'all';
             }
 
+            // 3. Shift dropdown
             const filterShift = document.getElementById('filter-shift');
             if (filterShift) {
                 const curShift = filterShift.value;
@@ -2821,6 +3050,10 @@
             handlePinSubmit,
             closeConfirmModal,
             executeConfirmAction,
+            openClearLogsModal,
+            closeClearLogsModal,
+            requestBulkClear,
+            onMonthFilterChange,
             openNotificationsModal,
             closeNotificationsModal,
             markAlertRead,
