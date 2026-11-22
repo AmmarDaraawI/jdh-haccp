@@ -162,8 +162,8 @@
                 <i data-lucide="layout-grid" class="w-4 h-4"></i>
                 <span>حالة البرادات</span>
             </button>
-            <button onclick="switchTab('manager')" id="tab-manager" class="tab-btn flex-1 min-w-[155px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
-                <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            <button onclick="switchTab('manager')" id="tab-manager" class="tab-btn flex-1 min-w-[165px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
+                <i data-lucide="lock" id="tab-manager-lock-icon" class="w-4 h-4 text-jdh-700"></i>
                 <span>لوحة المدير والمطابخ</span>
             </button>
             <button onclick="switchTab('logs')" id="tab-logs" class="tab-btn flex-1 min-w-[130px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition text-slate-600 hover:bg-jdh-50">
@@ -370,7 +370,7 @@
             </div>
         </div>
 
-        <!-- TAB 5: Manager Dashboard & Kitchen Oversight -->
+        <!-- TAB 5: Manager Dashboard & Kitchen Oversight (STRICTLY PIN PROTECTED) -->
         <div id="view-manager" class="hidden space-y-6">
             <!-- Manager Settings & Auto-Notification Config -->
             <div class="jdh-header-gradient text-white p-5 rounded-2xl shadow-lg border border-gold-500/40 space-y-4">
@@ -713,7 +713,7 @@
         import { getFirestore, doc, setDoc, deleteDoc, onSnapshot, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =========================================================================
-        // 🔑 إعدادات Firebase الخاصة بفندق جوليا دومنا (مشروع JDH PROJECT)
+        // إعدادات Firebase الخاصة بفندق جوليا دومنا (مشروع JDH PROJECT)
         // =========================================================================
         const MANUAL_FIREBASE_CONFIG = {
             apiKey: "AIzaSyCQ4KX5gXQt6ZjmmqJ6im9X7z2tLUA3sPc",
@@ -760,6 +760,7 @@
         let isInitialAlertsLoad = true;
         let lastStaffName = localStorage.getItem('jdh_last_staff') || '';
         let pendingScannedUnitId = null;
+        let currentActiveTab = 'dashboard';
 
         // Manager PIN session state
         let isManagerUnlocked = false;
@@ -856,29 +857,48 @@
             const btn = document.getElementById('manager-lock-btn');
             const icon = document.getElementById('manager-lock-icon');
             const txt = document.getElementById('manager-lock-text');
-            if (!btn || !icon || !txt) return;
+            const tabLockIcon = document.getElementById('tab-manager-lock-icon');
 
-            if (isManagerUnlocked) {
-                btn.classList.remove('bg-jdh-950/60', 'border-gold-500/30', 'text-jdh-200');
-                btn.classList.add('bg-gold-500/20', 'border-gold-400', 'text-gold-200');
-                icon.setAttribute('data-lucide', 'unlock');
-                txt.textContent = 'وضع المدير';
-            } else {
-                btn.classList.remove('bg-gold-500/20', 'border-gold-400', 'text-gold-200');
-                btn.classList.add('bg-jdh-950/60', 'border-gold-500/30', 'text-jdh-200');
-                icon.setAttribute('data-lucide', 'lock');
-                txt.textContent = 'وضع الشيف';
+            if (btn && icon && txt) {
+                if (isManagerUnlocked) {
+                    btn.classList.remove('bg-jdh-950/60', 'border-gold-500/30', 'text-jdh-200');
+                    btn.classList.add('bg-gold-500/20', 'border-gold-400', 'text-gold-200');
+                    icon.setAttribute('data-lucide', 'unlock');
+                    txt.textContent = 'وضع المدير';
+                } else {
+                    btn.classList.remove('bg-gold-500/20', 'border-gold-400', 'text-gold-200');
+                    btn.classList.add('bg-jdh-950/60', 'border-gold-500/30', 'text-jdh-200');
+                    icon.setAttribute('data-lucide', 'lock');
+                    txt.textContent = 'وضع الشيف';
+                }
+            }
+
+            if (tabLockIcon) {
+                tabLockIcon.setAttribute('data-lucide', isManagerUnlocked ? 'shield-check' : 'lock');
             }
             safeLucideIcons();
+        }
+
+        function clearManagerViewData() {
+            const container = document.getElementById('manager-kitchens-container');
+            const pills = document.getElementById('kitchen-filter-pills');
+            if (container) container.innerHTML = '';
+            if (pills) pills.innerHTML = '';
+            const pinField = document.getElementById('mgr-pin');
+            if (pinField) pinField.value = '';
         }
 
         function toggleManagerLock() {
             if (isManagerUnlocked) {
                 isManagerUnlocked = false;
+                clearManagerViewData();
                 updateManagerLockUI();
-                showToast('تم قفل صلاحيات المدير والعودة لوضع الشيف', 'info');
+                if (currentActiveTab === 'manager') {
+                    switchTab('dashboard');
+                }
+                showToast('تم قفل لوحة وصلاحيات المدير والعودة لوضع الشيف', 'info');
             } else {
-                requireManagerPin('أدخل رمز المدير لفتح صلاحيات التعديل والحذف:', () => {
+                requireManagerPin('أدخل رمز المدير لفتح صلاحيات ولوحة المدير:', () => {
                     showToast('تم تفعيل وضع المدير بنجاح', 'success');
                 });
             }
@@ -1589,9 +1609,10 @@
         }
 
         // ==========================================
-        // 3. UI RENDERING & TABS
+        // 3. UI RENDERING & TABS (STRICT PIN GATE FOR MANAGER TAB)
         // ==========================================
-        function switchTab(tabId) {
+        function activateTabUI(tabId) {
+            currentActiveTab = tabId;
             ['dashboard', 'manager', 'logs', 'qr', 'units'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
                 const btn = document.getElementById(`tab-${t}`);
@@ -1613,6 +1634,16 @@
                 renderManageUnits();
             }
             safeLucideIcons();
+        }
+
+        function switchTab(tabId) {
+            if (tabId === 'manager' && !isManagerUnlocked) {
+                requireManagerPin('أدخل رمز المدير للوصول إلى لوحة المدير والمطابخ:', () => {
+                    activateTabUI('manager');
+                });
+                return;
+            }
+            activateTabUI(tabId);
         }
 
         function renderKPIs() {
@@ -2085,6 +2116,12 @@
         }
 
         function renderManagerDashboard() {
+            // Never populate or expose any manager info unless unlocked with PIN
+            if (!isManagerUnlocked) {
+                clearManagerViewData();
+                return;
+            }
+
             document.getElementById('mgr-name').value = managerConfig.name || '';
             document.getElementById('mgr-phone').value = managerConfig.phone || '';
             document.getElementById('mgr-diff-threshold').value = managerConfig.maxDiffThreshold ?? 3.0;
@@ -2764,7 +2801,11 @@
             renderStaffManageChips();
             renderScheduleSettings();
             renderManageUnits();
-            renderManagerDashboard();
+            if (isManagerUnlocked) {
+                renderManagerDashboard();
+            } else {
+                clearManagerViewData();
+            }
             updateNotificationBadges();
             updateManagerLockUI();
             if (!document.getElementById('view-qr').classList.contains('hidden')) {
